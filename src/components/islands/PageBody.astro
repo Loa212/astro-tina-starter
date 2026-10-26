@@ -1,0 +1,10 @@
+---
+import type { PageData } from '../../lib/tina/data';
+import BlockRenderer from '../blocks/BlockRenderer.astro';
+
+interface Props {
+  page: PageData | undefined | null;
+}
+const { page } = Astro.props;
+---
+{page && <BlockRenderer blocks={page.blocks} pageTitle={page.title} />}

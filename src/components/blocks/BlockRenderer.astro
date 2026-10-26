@@ -1,0 +1,43 @@
+---
+import type { PageData } from '../../lib/tina/data';
+import Cards from './Cards.astro';
+import ContactForm from './ContactForm.astro';
+import ContactList from './ContactList.astro';
+import Cta from './Cta.astro';
+import Hero from './Hero.astro';
+import ImageBlock from './ImageBlock.astro';
+import LatestPosts from './LatestPosts.astro';
+import RichText from './RichText.astro';
+import Steps from './Steps.astro';
+
+interface Props {
+  blocks: PageData['blocks'];
+  pageTitle: string;
+}
+const { blocks, pageTitle } = Astro.props;
+type Block = NonNullable<NonNullable<PageData['blocks']>[number]>;
+const list = (blocks ?? []).filter((b): b is Block => Boolean(b));
+// Il primo blocco con un titolo rende un <h1>; se nessuno lo fa, mettiamo un h1 nascosto con il titolo pagina.
+const firstHeadingIndex = list.findIndex((b) => 'heading' in b && b.heading);
+const needsHiddenH1 =
+  firstHeadingIndex === -1 ||
+  !['PageBlocksHero', 'PageBlocksRichText', 'PageBlocksContactList'].includes(
+    list[firstHeadingIndex].__typename,
+  );
+---
+{needsHiddenH1 && <h1 class="sr-only">{pageTitle}</h1>}
+{list.map((block, i) => {
+  const first = i === firstHeadingIndex && !needsHiddenH1;
+  switch (block.__typename) {
+    case 'PageBlocksHero': return <Hero block={block} first={first} />;
+    case 'PageBlocksRichText': return <RichText block={block} first={first} />;
+    case 'PageBlocksSteps': return <Steps block={block} />;
+    case 'PageBlocksCards': return <Cards block={block} />;
+    case 'PageBlocksCta': return <Cta block={block} />;
+    case 'PageBlocksContactList': return <ContactList block={block} first={first} />;
+    case 'PageBlocksImage': return <ImageBlock block={block} />;
+    case 'PageBlocksContactForm': return <ContactForm block={block} />;
+    case 'PageBlocksLatestPosts': return <LatestPosts block={block} />;
+    default: return null;
+  }
+})}

@@ -1,0 +1,15 @@
+---
+import Button from '../components/Button.astro';
+import Base from '../layouts/Base.astro';
+import { getSettings } from '../lib/tina/data';
+
+const settings = await getSettings();
+---
+<Base title="Messaggio inviato" settings={settings.data.settings} noindex>
+  <main class="container-x flex flex-1 flex-col items-center justify-center py-24 text-center">
+    <span class="grid size-16 place-items-center rounded-full bg-primary text-bg"><svg class="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7" /></svg></span>
+    <h1 class="mt-6 text-4xl sm:text-5xl">Messaggio inviato</h1>
+    <p class="mt-4 max-w-lg text-lg text-muted">Grazie! Ti risponderemo al più presto.</p>
+    <div class="mt-8"><Button href="/">Torna alla home</Button></div>
+  </main>
+</Base>

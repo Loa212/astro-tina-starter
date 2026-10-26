@@ -1,0 +1,24 @@
+---
+import TinaIsland from '@tinacms/astro/TinaIsland.astro';
+import PageBody from '../components/islands/PageBody.astro';
+import Base from '../layouts/Base.astro';
+import { getPage, getSettings } from '../lib/tina/data';
+import { islands } from '../lib/tina/islands';
+
+const raw = (Astro.params.slug ?? '').replace(/^\/+|\/+$/g, '');
+if (raw === 'home') return Astro.redirect('/', 301);
+if (raw && !/^[a-z0-9-]+$/.test(raw)) return new Response(null, { status: 404 });
+const slug = raw || 'home';
+
+const [page, settings] = await Promise.all([getPage(slug).catch(() => null), getSettings()]);
+const data = page?.data?.page;
+if (!data) return Astro.rewrite('/404');
+
+const hero = data.blocks?.find((b) => b?.__typename === 'PageBlocksHero');
+const ogImage = hero && 'image' in hero ? hero.image : undefined;
+---
+<Base title={data.title} description={data.seoDescription} settings={settings.data.settings} image={ogImage}>
+  <TinaIsland name="page" wrapper={islands.page.wrapper} params={{ slug }} primary>
+    <PageBody page={data} />
+  </TinaIsland>
+</Base>

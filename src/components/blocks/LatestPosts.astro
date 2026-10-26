@@ -1,0 +1,28 @@
+---
+import { tinaField } from '@tinacms/astro/tina-field';
+import type { PageBlocksLatestPosts } from '../../../tina/__generated__/types';
+import { formatDate, listPosts } from '../../lib/tina/data';
+import PostCard from '../PostCard.astro';
+
+interface Props {
+  block: PageBlocksLatestPosts;
+}
+const { block } = Astro.props;
+const posts = await listPosts(block.count ?? 3);
+---
+<section class="container-x py-14 md:py-20">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      {block.heading && <h2 class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</h2>}
+      {block.intro && <p class="mt-2 text-lg text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
+    </div>
+    <a href="/blog/" class="font-heading text-sm font-semibold uppercase tracking-wide text-primary hover:underline">Tutti gli articoli →</a>
+  </div>
+  {posts.length === 0 ? (
+    <p class="mt-8 text-muted">Nessun articolo pubblicato.</p>
+  ) : (
+    <div class="mt-10 grid gap-6 md:grid-cols-3">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  )}
+</section>

@@ -1,0 +1,35 @@
+---
+import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
+import { tinaField } from '@tinacms/astro/tina-field';
+import type { PageBlocksHero } from '../../../tina/__generated__/types';
+import Button from '../Button.astro';
+
+interface Props {
+  block: PageBlocksHero;
+  first?: boolean;
+}
+const { block, first = false } = Astro.props;
+const Heading = first ? 'h1' : 'h2';
+---
+<section class="relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--color-surface)_0%,_transparent_60%)]"></div>
+  <div class="container-x flex flex-col items-center py-16 text-center md:py-24">
+    {block.image && (
+      <img src={block.image} alt="" width="192" height="192" loading="eager" fetchpriority="high"
+        class="mb-8 size-36 rounded-full object-cover shadow-[0_0_80px_-10px_rgba(250,204,21,0.45)] md:size-48"
+        data-tina-field={tinaField(block, 'image')} />
+    )}
+    {block.eyebrow && (
+      <p class="mb-3 font-heading text-xs font-semibold uppercase tracking-[0.15em] text-primary sm:text-sm sm:tracking-[0.2em]" data-tina-field={tinaField(block, 'eyebrow')}>{block.eyebrow}</p>
+    )}
+    <Heading class="max-w-4xl text-4xl uppercase sm:text-5xl md:text-6xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>
+    {block.body && (
+      <div class="rich mt-6 max-w-2xl text-xl" data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>
+    )}
+    {(block.buttons?.length ?? 0) > 0 && block.buttons && (
+      <div class="mt-10 flex flex-wrap justify-center gap-3" data-tina-field={tinaField(block, 'buttons')}>
+        {block.buttons.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
+      </div>
+    )}
+  </div>
+</section>

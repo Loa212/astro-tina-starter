@@ -1,0 +1,19 @@
+---
+import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
+import { tinaField } from '@tinacms/astro/tina-field';
+
+import type { PageBlocksRichText } from '../../../tina/__generated__/types';
+
+interface Props {
+  block: PageBlocksRichText;
+  first?: boolean;
+}
+const { block, first = false } = Astro.props;
+const Heading = first ? 'h1' : 'h2';
+---
+<section class="container-x py-14 md:py-20">
+  <div class="mx-auto max-w-3xl">
+    {block.heading && <Heading class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>}
+    {block.body && <div class:list={['rich', block.heading && 'mt-6']} data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>}
+  </div>
+</section>

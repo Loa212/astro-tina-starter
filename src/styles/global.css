@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import "@fontsource-variable/rubik";
+@import "@fontsource/lato/400.css";
+@import "@fontsource/lato/700.css";
+@import "@fontsource/lato/900.css";
+
+@theme {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-2: #273449;
+  --color-primary: #facc15;
+  --color-primary-700: #ca9a04;
+  --color-secondary: #3b82f6;
+  --color-fg: #ffffff;
+  --color-muted: #cbd5e1;
+  --color-line: #334155;
+
+  --font-heading: "Rubik Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Lato", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-bg text-fg font-body antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading font-medium tracking-tight text-balance;
+  }
+  ::selection {
+    @apply bg-primary text-bg;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+@utility container-x {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-heading text-sm font-semibold uppercase tracking-wide transition-colors;
+  }
+  .btn-primary {
+    @apply bg-primary text-bg hover:bg-primary-700;
+  }
+  .btn-outline {
+    @apply border-2 border-fg/70 text-fg hover:border-primary hover:text-primary;
+  }
+
+  /* Testo formattato dall'editor (rich-text) */
+  .rich {
+    @apply text-lg leading-relaxed text-muted;
+  }
+  .rich p + p,
+  .rich p + h3,
+  .rich h3 + p,
+  .rich ul + p {
+    @apply mt-5;
+  }
+  .rich strong {
+    @apply font-bold text-fg;
+  }
+  .rich a {
+    @apply text-primary underline decoration-primary/50 underline-offset-4 hover:decoration-primary;
+  }
+  .rich h2 {
+    @apply mt-10 text-3xl text-fg;
+  }
+  .rich h3 {
+    @apply mt-8 font-heading text-xl font-semibold text-primary;
+  }
+  .rich ul {
+    @apply mt-4 list-disc space-y-2 pl-6;
+  }
+  .rich ol {
+    @apply mt-4 list-decimal space-y-2 pl-6;
+  }
+  .rich blockquote {
+    @apply border-l-4 border-primary pl-5 italic;
+  }
+  .rich img {
+    @apply my-6 rounded-2xl;
+  }
+
+  /* Modulo */
+  .field {
+    @apply block text-sm font-semibold text-muted;
+  }
+  .input {
+    @apply mt-1.5 block w-full rounded-xl border border-line bg-bg px-4 py-3 text-fg placeholder:text-muted/50 focus:border-primary focus:outline-none;
+  }
+  .input[aria-invalid="true"] {
+    @apply border-red-400;
+  }
+  .choice {
+    @apply flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-bg px-4 py-3 text-sm text-muted has-checked:border-primary has-checked:text-fg;
+  }
+  .choice input {
+    @apply mt-0.5 size-4 shrink-0 accent-primary;
+  }
+  .error {
+    @apply mt-1.5 text-sm text-red-300;
+  }
+}

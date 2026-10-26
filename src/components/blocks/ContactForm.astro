@@ -1,0 +1,102 @@
+---
+import { tinaField } from '@tinacms/astro/tina-field';
+import type { PageBlocksContactForm } from '../../../tina/__generated__/types';
+
+interface Props {
+  block: PageBlocksContactForm;
+}
+const { block } = Astro.props;
+const turnstileKey = process.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+const startedAt = Date.now();
+const err = Astro.url.searchParams.get('errore');
+const serverMessage =
+  err === 'campi'
+    ? 'Alcuni campi non sono validi: controlla i dati inseriti e invia di nuovo.'
+    : err === 'invio'
+      ? 'Non siamo riusciti a inviare il messaggio. Riprova tra poco.'
+      : '';
+---
+<section id="modulo-contatti" class="bg-surface/50 py-14 md:py-20">
+  <div class="container-x">
+    <div class="mx-auto max-w-2xl">
+      <div class="text-center">
+        <h2 class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading ?? 'Scrivici'}</h2>
+        {block.intro && <p class="mt-4 text-lg text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
+      </div>
+
+      <form id="form-contatto" method="post" action="/api/contatto" class="mt-10 space-y-6" novalidate>
+        <input type="hidden" name="_startedAt" value={startedAt} />
+        <div class="hidden" aria-hidden="true"><label>Sito web <input type="text" name="_website" tabindex="-1" autocomplete="off" /></label></div>
+        <p id="form-messaggio" class:list={['rounded-2xl border px-5 py-4 text-sm', serverMessage ? 'border-red-400/60 bg-red-950/40 text-red-100' : 'hidden']} role="alert">{serverMessage}</p>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <label class="field">Nome *<input class="input" name="nome" type="text" autocomplete="name" required /></label>
+          <label class="field">Email *<input class="input" name="email" type="email" autocomplete="email" required /></label>
+          <label class="field sm:col-span-2">Telefono<input class="input" name="telefono" type="tel" autocomplete="tel" /></label>
+          <label class="field sm:col-span-2">Messaggio *<textarea class="input min-h-40" name="messaggio" required></textarea></label>
+        </div>
+        <label class="choice" data-group="privacy"><input type="checkbox" name="privacy" required /><span>Acconsento al trattamento dei dati per rispondere alla mia richiesta.</span></label>
+
+        {turnstileKey && (
+          <>
+            <div class="cf-turnstile" data-sitekey={turnstileKey} data-theme="dark"></div>
+            <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+          </>
+        )}
+
+        <div class="flex flex-col items-center gap-3 pt-2">
+          <button type="submit" class="btn btn-primary w-full sm:w-auto sm:min-w-56" data-submit>Invia messaggio</button>
+          <p class="text-center text-xs text-muted">I campi con * sono obbligatori. Il messaggio viene inviato via email e non viene conservato sul sito.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('form-contatto') as HTMLFormElement | null;
+  const message = document.getElementById('form-messaggio');
+  const submit = form?.querySelector<HTMLButtonElement>('[data-submit]');
+
+  function clearErrors() {
+    form?.querySelectorAll('.error').forEach((e) => e.remove());
+    form?.querySelectorAll('[aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'));
+  }
+
+  function showErrors(errors: Record<string, string>) {
+    for (const [name, text] of Object.entries(errors)) {
+      const input = form?.querySelector<HTMLElement>(`[name="${name}"]`);
+      const anchor = form?.querySelector<HTMLElement>(`[data-group="${name}"]`) ?? input?.closest('label') ?? input;
+      if (!anchor) continue;
+      input?.setAttribute('aria-invalid', 'true');
+      const p = document.createElement('p');
+      p.className = 'error';
+      p.textContent = text;
+      anchor.insertAdjacentElement('afterend', p);
+    }
+    form?.querySelector('[aria-invalid], .error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function setMessage(text: string) {
+    if (!message) return;
+    message.textContent = text;
+    message.className = 'rounded-2xl border border-red-400/60 bg-red-950/40 px-5 py-4 text-sm text-red-100';
+  }
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearErrors();
+    if (submit) { submit.disabled = true; submit.textContent = 'Invio in corso…'; }
+    try {
+      const res = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { accept: 'application/json' } });
+      const json = (await res.json()) as { ok: boolean; message?: string; errors?: Record<string, string>; redirect?: string };
+      if (json.ok) { window.location.assign(json.redirect ?? '/grazie/'); return; }
+      setMessage(json.message ?? 'Controlla i campi evidenziati');
+      if (json.errors) showErrors(json.errors);
+    } catch {
+      setMessage('Connessione assente o errore del server: riprova tra poco.');
+    } finally {
+      if (submit) { submit.disabled = false; submit.textContent = 'Invia messaggio'; }
+    }
+  });
+</script>

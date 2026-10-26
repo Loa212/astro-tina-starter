@@ -1,0 +1,11 @@
+node_modules
+dist
+.astro
+.tina
+data
+.git
+.env
+.env.*
+public/admin
+tina/__generated__
+README.md

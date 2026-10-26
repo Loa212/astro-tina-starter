@@ -1,0 +1,65 @@
+---
+import TinaIsland from '@tinacms/astro/TinaIsland.astro';
+import SiteFooter from '../components/islands/SiteFooter.astro';
+import SiteHeader from '../components/islands/SiteHeader.astro';
+import type { SettingsData } from '../lib/tina/data';
+import { islands } from '../lib/tina/islands';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string | null;
+  settings: SettingsData | undefined | null;
+  image?: string | null;
+  noindex?: boolean;
+}
+const {
+  title,
+  description,
+  settings,
+  image = '/uploads/og.png',
+  noindex: pageNoindex = false,
+} = Astro.props;
+// SITE_NOINDEX=true sul dominio provvisorio: niente indicizzazione finché il sito non è sul dominio definitivo.
+const noindex = pageNoindex || process.env.SITE_NOINDEX === 'true';
+const siteName = settings?.siteName ?? 'Sito';
+const fullTitle = title.toLowerCase().includes(siteName.toLowerCase())
+  ? title
+  : `${title} – ${siteName}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const ogImage = new URL(image ?? '/uploads/og.png', Astro.site ?? Astro.url.origin);
+---
+<!doctype html>
+<html lang="it" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body class="flex min-h-full flex-col">
+    <a href="#contenuto" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-bg">Vai al contenuto</a>
+    <TinaIsland name="header" wrapper={islands.header.wrapper}>
+      <SiteHeader settings={settings} />
+    </TinaIsland>
+    <div id="contenuto" class="flex flex-1 flex-col">
+      <slot />
+    </div>
+    <TinaIsland name="footer" wrapper={islands.footer.wrapper}>
+      <SiteFooter settings={settings} />
+    </TinaIsland>
+  </body>
+</html>

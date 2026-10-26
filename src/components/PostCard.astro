@@ -1,0 +1,20 @@
+---
+import { formatDate, type PostSummary } from '../lib/tina/data';
+
+interface Props {
+  post: PostSummary;
+}
+const { post } = Astro.props;
+---
+<a href={`/blog/${post.slug}/`} class="group flex flex-col overflow-hidden rounded-3xl bg-surface transition-colors hover:bg-surface-2">
+  {post.image ? (
+    <img src={post.image} alt="" width="800" height="450" loading="lazy" class="aspect-video w-full object-cover" />
+  ) : (
+    <div class="aspect-video w-full bg-gradient-to-br from-surface-2 to-bg"></div>
+  )}
+  <div class="flex flex-1 flex-col p-6">
+    <time datetime={post.date} class="text-xs font-semibold uppercase tracking-wider text-primary">{formatDate(post.date)}</time>
+    <h3 class="mt-2 text-xl group-hover:text-primary">{post.title}</h3>
+    {post.description && <p class="mt-2 line-clamp-3 text-muted">{post.description}</p>}
+  </div>
+</a>

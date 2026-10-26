@@ -1,0 +1,21 @@
+---
+interface Props {
+  href: string;
+  variant?: 'primary' | 'outline' | string | null;
+  class?: string;
+  'data-tina-field'?: string;
+}
+const { href, variant, class: className = '', ...rest } = Astro.props;
+const isExternal = /^https?:\/\//.test(href);
+const isFile = /\.(pdf|docx?|xlsx?)$/i.test(href);
+---
+<a
+  href={href}
+  class:list={['btn', variant === 'outline' ? 'btn-outline' : 'btn-primary', className]}
+  target={isExternal ? '_blank' : undefined}
+  rel={isExternal ? 'noopener noreferrer' : undefined}
+  download={isFile ? '' : undefined}
+  {...rest}
+>
+  <slot />
+</a>

@@ -1,0 +1,62 @@
+---
+import { tinaField } from '@tinacms/astro/tina-field';
+import type { SettingsData } from '../../lib/tina/data';
+import Icon from '../Icon.astro';
+import SocialLinks from '../SocialLinks.astro';
+
+interface Props {
+  settings: SettingsData | undefined | null;
+}
+const { settings } = Astro.props;
+const current = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) => (href.replace(/\/+$/, '') || '/') === current;
+---
+<header class="sticky top-0 z-40 border-b border-line/60 bg-bg/85 backdrop-blur supports-[backdrop-filter]:bg-bg/70">
+  <div class="container-x flex h-16 items-center justify-between gap-4 md:h-20">
+    <a href="/" class="flex min-w-0 items-center gap-3" aria-label={settings?.siteName ?? 'Home'}>
+      {settings?.logo && (
+        <img src={settings.logo} alt="" width="44" height="44" class="size-11 rounded-full object-cover" data-tina-field={tinaField(settings, 'logo')} />
+      )}
+      <span class="min-w-0 leading-tight">
+        <span class="block truncate font-heading text-base font-semibold uppercase tracking-wide" data-tina-field={settings ? tinaField(settings, 'siteName') : undefined}>{settings?.siteName ?? 'Futuro Nazionale'}</span>
+        {settings?.tagline && <span class="hidden truncate text-xs text-muted sm:block" data-tina-field={tinaField(settings, 'tagline')}>{settings.tagline}</span>}
+      </span>
+    </a>
+
+    <nav id="site-nav" class="hidden items-center gap-1 md:flex" aria-label="Principale">
+      {settings?.nav?.map((item) => item && (
+        <a href={item.href}
+          class:list={['rounded-full px-4 py-2 font-heading text-sm font-semibold uppercase tracking-wide transition-colors', isActive(item.href) ? 'text-primary' : 'text-muted hover:text-fg']}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+          data-tina-field={tinaField(item, 'label')}>{item.label}</a>
+      ))}
+      <SocialLinks instagram={settings?.social?.instagram} facebook={settings?.social?.facebook} class="ml-2" />
+    </nav>
+
+    <button type="button" class="grid size-11 place-items-center rounded-full text-fg hover:bg-surface md:hidden" aria-controls="mobile-nav" aria-expanded="false" aria-label="Apri il menu" data-menu-toggle>
+      <Icon name="menu" class="size-6 [[aria-expanded=true]_&]:hidden" />
+      <Icon name="close" class="hidden size-6 [[aria-expanded=true]_&]:block" />
+    </button>
+  </div>
+
+  <div id="mobile-nav" class="hidden border-t border-line/60 md:hidden" hidden>
+    <nav class="container-x flex flex-col gap-1 py-4" aria-label="Principale (mobile)">
+      {settings?.nav?.map((item) => item && (
+        <a href={item.href} class:list={['rounded-xl px-4 py-3 font-heading text-base font-semibold uppercase tracking-wide', isActive(item.href) ? 'bg-surface text-primary' : 'text-fg hover:bg-surface']}>{item.label}</a>
+      ))}
+      <SocialLinks instagram={settings?.social?.instagram} facebook={settings?.social?.facebook} class="mt-2 px-2" />
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const panel = document.getElementById('mobile-nav');
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    toggle.setAttribute('aria-label', open ? 'Apri il menu' : 'Chiudi il menu');
+    panel?.toggleAttribute('hidden', open);
+    panel?.classList.toggle('hidden', open);
+  });
+</script>

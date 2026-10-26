@@ -1,0 +1,13 @@
+---
+import { tinaField } from '@tinacms/astro/tina-field';
+
+import type { PageBlocksImage } from '../../../tina/__generated__/types';
+
+interface Props {
+  block: PageBlocksImage;
+}
+const { block } = Astro.props;
+---
+<section class="container-x pt-8 md:pt-12">
+  <img src={block.image} alt={block.alt ?? ''} width="2048" height="614" loading="eager" fetchpriority="high" class="w-full rounded-3xl object-cover" data-tina-field={tinaField(block, 'image')} />
+</section>

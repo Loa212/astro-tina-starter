@@ -1,0 +1,16 @@
+---
+import Button from '../components/Button.astro';
+import Base from '../layouts/Base.astro';
+import { getSettings } from '../lib/tina/data';
+
+const settings = await getSettings();
+Astro.response.status = 404;
+---
+<Base title="Pagina non trovata" settings={settings.data.settings} noindex>
+  <main class="container-x flex flex-1 flex-col items-center justify-center py-24 text-center">
+    <p class="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-primary">Errore 404</p>
+    <h1 class="mt-3 text-4xl sm:text-5xl">Pagina non trovata</h1>
+    <p class="mt-4 max-w-md text-lg text-muted">La pagina che cerchi non esiste o è stata spostata.</p>
+    <div class="mt-8 flex gap-3"><Button href="/">Torna alla home</Button><Button href="/contatti/" variant="outline">Contattaci</Button></div>
+  </main>
+</Base>
