@@ -44,7 +44,7 @@ const wa = settings?.contacts?.whatsapp?.replace(/[^\d]/g, '');
   <div class="border-t border-line/60">
     <div class="container-x flex flex-col gap-2 py-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
       <p>© {year} {settings?.siteName} – {settings?.tagline}</p>
-      <a href="/admin/index.html" class="opacity-50 transition-opacity hover:opacity-100">Area riservata</a>
+      <span class="flex items-center gap-4"><a href="/privacy/" class="transition-colors hover:text-fg">Privacy e cookie</a><a href="/admin/index.html" class="opacity-50 transition-opacity hover:opacity-100">Area riservata</a></span>
     </div>
   </div>
 </footer>

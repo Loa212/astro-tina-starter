@@ -102,6 +102,11 @@ public/uploads      immagini scelte dal CMS
 2. Componente in `src/components/blocks/` con `data-tina-field={tinaField(block, 'campo')}` sugli elementi cliccabili.
 3. `case 'PageBlocks<Nome>'` in `BlockRenderer.astro`. Riavvia `pnpm dev` (rigenera `tina/__generated__`).
 
+### Privacy e cookie
+La pagina `/privacy/` (`content/pages/privacy.md`, modificabile dal CMS) è linkata dal footer e dal consenso del modulo:
+compila i segnaposto **[…]** e falla rivedere a chi ne risponde. Il sito non usa cookie di profilazione né di terze parti,
+quindi non serve un banner; se aggiungi analytics o embed esterni, serve un banner con consenso.
+
 ### Limiti noti
 - **Upload immagini dal CMS**: in self-hosted Tina non ha il CDN media di TinaCloud; il media manager è in sola lettura
   (`static: true`). Le nuove immagini si aggiungono in `public/uploads/` con un commit.
