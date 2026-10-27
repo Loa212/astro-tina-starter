@@ -1,62 +1,66 @@
 ---
 import { tinaField } from '@tinacms/astro/tina-field';
 import type { PageBlocksContactForm } from '../../../tina/__generated__/types';
+import { type Locale, localizePath, t } from '../../lib/i18n';
+import Icon from '../Icon.astro';
 
 interface Props {
   block: PageBlocksContactForm;
+  locale: Locale;
 }
-const { block } = Astro.props;
+const { block, locale } = Astro.props;
+const ui = t(locale).form;
 const turnstileKey = process.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 const startedAt = Date.now();
-const err = Astro.url.searchParams.get('errore');
-const serverMessage =
-  err === 'campi'
-    ? 'Alcuni campi non sono validi: controlla i dati inseriti e invia di nuovo.'
-    : err === 'invio'
-      ? 'Non siamo riusciti a inviare il messaggio. Riprova tra poco.'
-      : '';
+const err = Astro.url.searchParams.get('error');
+const serverMessage = err === 'fields' ? ui.errorFields : err === 'send' ? ui.errorSend : '';
 ---
-<section id="modulo-contatti" class="bg-surface/50 py-14 md:py-20">
-  <div class="container-x">
-    <div class="mx-auto max-w-2xl">
-      <div class="text-center">
-        <h2 class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading ?? 'Scrivici'}</h2>
-        {block.intro && <p class="mt-4 text-lg text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
-      </div>
-
-      <form id="form-contatto" method="post" action="/api/contatto" class="mt-10 space-y-6" novalidate>
-        <input type="hidden" name="_startedAt" value={startedAt} />
-        <div class="hidden" aria-hidden="true"><label>Sito web <input type="text" name="_website" tabindex="-1" autocomplete="off" /></label></div>
-        <p id="form-messaggio" class:list={['rounded-2xl border px-5 py-4 text-sm', serverMessage ? 'border-red-400/60 bg-red-950/40 text-red-100' : 'hidden']} role="alert">{serverMessage}</p>
-
-        <div class="grid gap-5 sm:grid-cols-2">
-          <label class="field">Nome *<input class="input" name="nome" type="text" autocomplete="name" required /></label>
-          <label class="field">Email *<input class="input" name="email" type="email" autocomplete="email" required /></label>
-          <label class="field sm:col-span-2">Telefono<input class="input" name="telefono" type="tel" autocomplete="tel" /></label>
-          <label class="field sm:col-span-2">Messaggio *<textarea class="input min-h-40" name="messaggio" required></textarea></label>
-        </div>
-        <label class="choice" data-group="privacy"><input type="checkbox" name="privacy" required /><span>Ho letto <a href="/privacy/" target="_blank" rel="noopener" class="text-primary underline underline-offset-4">l’informativa sulla privacy</a> e acconsento al trattamento dei dati per rispondere alla mia richiesta.</span></label>
-
-        {turnstileKey && (
-          <>
-            <div class="cf-turnstile" data-sitekey={turnstileKey} data-theme="dark"></div>
-            <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-          </>
-        )}
-
-        <div class="flex flex-col items-center gap-3 pt-2">
-          <button type="submit" class="btn btn-primary w-full sm:w-auto sm:min-w-56" data-submit>Invia messaggio</button>
-          <p class="text-center text-xs text-muted">I campi con * sono obbligatori. Il messaggio viene inviato via email e non viene conservato sul sito.</p>
-        </div>
-      </form>
+<section id="contact-form" class="bg-surface py-20 md:py-28">
+  <div class="container-x grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+    <div>
+      <h2 class="text-4xl sm:text-5xl lg:text-6xl" data-tina-field={tinaField(block, 'heading')}>{block.heading ?? ui.defaultHeading}</h2>
+      {block.intro && <p class="mt-6 max-w-md text-lg leading-relaxed text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
     </div>
+
+    <form id="contact-form-el" method="post" action="/api/contact" class="space-y-6" novalidate
+      data-msg-sending={ui.sending} data-msg-submit={ui.submit} data-msg-check={ui.checkFields} data-msg-network={ui.errorNetwork}>
+      <input type="hidden" name="_startedAt" value={startedAt} />
+      <input type="hidden" name="_lang" value={locale} />
+      <div class="hidden" aria-hidden="true"><label>Website <input type="text" name="_website" tabindex="-1" autocomplete="off" /></label></div>
+      <p id="contact-form-message" class:list={['rounded-md border border-red-700/30 bg-red-50 px-5 py-4 text-sm text-red-800', !serverMessage && 'hidden']} role="alert">{serverMessage}</p>
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <label class="field">{ui.name} *<input class="input" name="name" type="text" autocomplete="name" required /></label>
+        <label class="field">{ui.email} *<input class="input" name="email" type="email" autocomplete="email" required /></label>
+        <label class="field sm:col-span-2">{ui.phone}<input class="input" name="phone" type="tel" autocomplete="tel" /></label>
+        <label class="field sm:col-span-2">{ui.message} *<textarea class="input min-h-40" name="message" required></textarea></label>
+      </div>
+      <label class="choice" data-group="privacy">
+        <input type="checkbox" name="privacy" required />
+        <span>{ui.consentBefore}<a href={localizePath('/privacy/', locale)} target="_blank" rel="noopener" class="text-fg underline decoration-accent/60 underline-offset-4">{ui.consentLink}</a>{ui.consentAfter}</span>
+      </label>
+
+      {turnstileKey && (
+        <>
+          <div class="cf-turnstile" data-sitekey={turnstileKey} data-theme="light"></div>
+          <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        </>
+      )}
+
+      <div class="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <p class="max-w-sm text-xs leading-relaxed text-muted">{ui.required}</p>
+        <button type="submit" class="btn btn-primary shrink-0 disabled:opacity-60" data-submit><span data-submit-label>{ui.submit}</span><Icon name="arrow" class="-mr-1 size-4" /></button>
+      </div>
+    </form>
   </div>
 </section>
 
 <script>
-  const form = document.getElementById('form-contatto') as HTMLFormElement | null;
-  const message = document.getElementById('form-messaggio');
+  const form = document.getElementById('contact-form-el') as HTMLFormElement | null;
+  const message = document.getElementById('contact-form-message');
   const submit = form?.querySelector<HTMLButtonElement>('[data-submit]');
+  const submitLabel = form?.querySelector<HTMLElement>('[data-submit-label]');
+  const msg = form?.dataset ?? {};
 
   function clearErrors() {
     form?.querySelectorAll('.error').forEach((e) => e.remove());
@@ -80,23 +84,26 @@ const serverMessage =
   function setMessage(text: string) {
     if (!message) return;
     message.textContent = text;
-    message.className = 'rounded-2xl border border-red-400/60 bg-red-950/40 px-5 py-4 text-sm text-red-100';
+    message.classList.remove('hidden');
   }
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     clearErrors();
-    if (submit) { submit.disabled = true; submit.textContent = 'Invio in corso…'; }
+    message?.classList.add('hidden');
+    if (submit) submit.disabled = true;
+    if (submitLabel) submitLabel.textContent = msg.msgSending ?? '';
     try {
       const res = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { accept: 'application/json' } });
       const json = (await res.json()) as { ok: boolean; message?: string; errors?: Record<string, string>; redirect?: string };
-      if (json.ok) { window.location.assign(json.redirect ?? '/grazie/'); return; }
-      setMessage(json.message ?? 'Controlla i campi evidenziati');
+      if (json.ok) { window.location.assign(json.redirect ?? '/thanks/'); return; }
+      setMessage(json.message ?? msg.msgCheck ?? '');
       if (json.errors) showErrors(json.errors);
     } catch {
-      setMessage('Connessione assente o errore del server: riprova tra poco.');
+      setMessage(msg.msgNetwork ?? '');
     } finally {
-      if (submit) { submit.disabled = false; submit.textContent = 'Invia messaggio'; }
+      if (submit) submit.disabled = false;
+      if (submitLabel) submitLabel.textContent = msg.msgSubmit ?? '';
     }
   });
 </script>

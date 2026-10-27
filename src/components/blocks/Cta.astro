@@ -8,14 +8,16 @@ interface Props {
 }
 const { block } = Astro.props;
 ---
-<section class="container-x py-10 md:py-14">
-  <div class="rounded-3xl border border-primary/30 bg-gradient-to-br from-surface to-bg px-6 py-12 text-center md:px-12">
-    {block.heading && <h2 class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</h2>}
-    {block.text && <p class="mx-auto mt-4 max-w-2xl text-lg text-muted" data-tina-field={tinaField(block, 'text')}>{block.text}</p>}
-    {(block.buttons?.length ?? 0) > 0 && block.buttons && (
-      <div class:list={['flex flex-wrap justify-center gap-3', (block.heading || block.text) && 'mt-8']} data-tina-field={tinaField(block, 'buttons')}>
-        {block.buttons.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
-      </div>
-    )}
+<section class="container-x py-20 md:py-28">
+  <div class="grid gap-10 border-t border-fg pt-12 md:pt-16 lg:grid-cols-[1.5fr_1fr] lg:items-end lg:gap-20">
+    {block.heading && <h2 class="text-5xl sm:text-6xl lg:text-7xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</h2>}
+    <div class="lg:pb-2">
+      {block.text && <p class="text-lg leading-relaxed text-muted" data-tina-field={tinaField(block, 'text')}>{block.text}</p>}
+      {(block.buttons?.length ?? 0) > 0 && (
+        <div class:list={['flex flex-wrap gap-3', block.text && 'mt-8']} data-tina-field={tinaField(block, 'buttons')}>
+          {block.buttons!.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
+        </div>
+      )}
+    </div>
   </div>
 </section>

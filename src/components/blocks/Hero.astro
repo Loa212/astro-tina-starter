@@ -10,26 +10,42 @@ interface Props {
 }
 const { block, first = false } = Astro.props;
 const Heading = first ? 'h1' : 'h2';
+const hasButtons = (block.buttons?.length ?? 0) > 0;
 ---
-<section class="relative overflow-hidden">
-  <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--color-surface)_0%,_transparent_60%)]"></div>
-  <div class="container-x flex flex-col items-center py-16 text-center md:py-24">
-    {block.image && (
-      <img src={block.image} alt="" width="192" height="192" loading="eager" fetchpriority="high"
-        class="mb-8 size-36 rounded-full object-cover shadow-[0_0_80px_-10px_rgba(250,204,21,0.45)] md:size-48"
-        data-tina-field={tinaField(block, 'image')} />
-    )}
-    {block.eyebrow && (
-      <p class="mb-3 font-heading text-xs font-semibold uppercase tracking-[0.15em] text-primary sm:text-sm sm:tracking-[0.2em]" data-tina-field={tinaField(block, 'eyebrow')}>{block.eyebrow}</p>
-    )}
-    <Heading class="max-w-4xl text-4xl uppercase sm:text-5xl md:text-6xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>
-    {block.body && (
-      <div class="rich mt-6 max-w-2xl text-xl" data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>
-    )}
-    {(block.buttons?.length ?? 0) > 0 && block.buttons && (
-      <div class="mt-10 flex flex-wrap justify-center gap-3" data-tina-field={tinaField(block, 'buttons')}>
-        {block.buttons.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
+{block.image ? (
+  <section class="border-b border-line">
+    <div class="grid lg:min-h-[min(calc(100svh-4.5rem),54rem)] lg:grid-cols-[1.08fr_1fr]">
+      <figure class="relative aspect-[4/3] overflow-hidden bg-surface sm:aspect-[16/10] lg:aspect-auto">
+        <img src={block.image} alt={block.imageAlt ?? ''} width="1500" height="1300" loading="eager" fetchpriority="high"
+          class="settle absolute inset-0 size-full object-cover" data-tina-field={tinaField(block, 'image')} />
+      </figure>
+      <div class="flex flex-col justify-center bg-surface px-4 py-14 sm:px-10 sm:py-16 lg:px-14 xl:px-20">
+        <div class="max-w-xl">
+          {block.eyebrow && <p class="rise eyebrow" data-tina-field={tinaField(block, 'eyebrow')}>{block.eyebrow}</p>}
+          <Heading class="rise mt-6 text-[clamp(2.9rem,6.2vw,5.6rem)] leading-[0.98] [--i:1]" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>
+          {block.body && (
+            <div class="rise rich mt-7 max-w-md [--i:2]" data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>
+          )}
+          {hasButtons && (
+            <div class="rise mt-10 flex flex-wrap gap-3 [--i:3]" data-tina-field={tinaField(block, 'buttons')}>
+              {block.buttons!.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
+            </div>
+          )}
+          {block.note && <p class="rise mt-8 border-t border-line pt-6 text-sm text-muted [--i:4]" data-tina-field={tinaField(block, 'note')}>{block.note}</p>}
+        </div>
+      </div>
+    </div>
+  </section>
+) : (
+  <section class="container-x py-20 text-center md:py-32">
+    {block.eyebrow && <p class="rise eyebrow justify-center" data-tina-field={tinaField(block, 'eyebrow')}>{block.eyebrow}</p>}
+    <Heading class="rise mx-auto mt-6 max-w-4xl text-[clamp(2.9rem,7vw,6rem)] leading-[0.98] [--i:1]" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>
+    {block.body && <div class="rise rich mx-auto mt-7 max-w-xl [--i:2]" data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>}
+    {hasButtons && (
+      <div class="rise mt-10 flex flex-wrap justify-center gap-3 [--i:3]" data-tina-field={tinaField(block, 'buttons')}>
+        {block.buttons!.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
       </div>
     )}
-  </div>
-</section>
+    {block.note && <p class="rise mt-8 text-sm text-muted [--i:4]" data-tina-field={tinaField(block, 'note')}>{block.note}</p>}
+  </section>
+)}

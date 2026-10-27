@@ -1,28 +1,34 @@
 ---
+import type { Locale } from '../../lib/i18n';
 import type { PageData } from '../../lib/tina/data';
 import Cards from './Cards.astro';
 import ContactForm from './ContactForm.astro';
 import ContactList from './ContactList.astro';
 import Cta from './Cta.astro';
+import Faq from './Faq.astro';
+import Feature from './Feature.astro';
 import Hero from './Hero.astro';
 import ImageBlock from './ImageBlock.astro';
 import LatestPosts from './LatestPosts.astro';
 import RichText from './RichText.astro';
+import Stats from './Stats.astro';
 import Steps from './Steps.astro';
+import Testimonials from './Testimonials.astro';
 
 interface Props {
   blocks: PageData['blocks'];
   pageTitle: string;
+  locale: Locale;
 }
-const { blocks, pageTitle } = Astro.props;
+const { blocks, pageTitle, locale } = Astro.props;
 type Block = NonNullable<NonNullable<PageData['blocks']>[number]>;
 const list = (blocks ?? []).filter((b): b is Block => Boolean(b));
 // Il primo blocco con un titolo rende un <h1>; se nessuno lo fa, mettiamo un h1 nascosto con il titolo pagina.
 const firstHeadingIndex = list.findIndex((b) => 'heading' in b && b.heading);
 const needsHiddenH1 =
   firstHeadingIndex === -1 ||
-  !['PageBlocksHero', 'PageBlocksRichText', 'PageBlocksContactList'].includes(
-    list[firstHeadingIndex].__typename,
+  !['PageBlocksHero', 'PageBlocksRichText', 'PageBlocksContactList', 'PageBlocksFeature'].includes(
+    list[firstHeadingIndex].__typename ?? '',
   );
 ---
 {needsHiddenH1 && <h1 class="sr-only">{pageTitle}</h1>}
@@ -30,14 +36,18 @@ const needsHiddenH1 =
   const first = i === firstHeadingIndex && !needsHiddenH1;
   switch (block.__typename) {
     case 'PageBlocksHero': return <Hero block={block} first={first} />;
-    case 'PageBlocksRichText': return <RichText block={block} first={first} />;
-    case 'PageBlocksSteps': return <Steps block={block} />;
+    case 'PageBlocksStats': return <Stats block={block} />;
+    case 'PageBlocksFeature': return <Feature block={block} first={first} />;
+    case 'PageBlocksTestimonials': return <Testimonials block={block} />;
     case 'PageBlocksCards': return <Cards block={block} />;
-    case 'PageBlocksCta': return <Cta block={block} />;
-    case 'PageBlocksContactList': return <ContactList block={block} first={first} />;
+    case 'PageBlocksSteps': return <Steps block={block} />;
+    case 'PageBlocksFaq': return <Faq block={block} />;
+    case 'PageBlocksRichText': return <RichText block={block} first={first} />;
     case 'PageBlocksImage': return <ImageBlock block={block} />;
-    case 'PageBlocksContactForm': return <ContactForm block={block} />;
-    case 'PageBlocksLatestPosts': return <LatestPosts block={block} />;
+    case 'PageBlocksLatestPosts': return <LatestPosts block={block} locale={locale} />;
+    case 'PageBlocksCta': return <Cta block={block} />;
+    case 'PageBlocksContactList': return <ContactList block={block} first={first} locale={locale} />;
+    case 'PageBlocksContactForm': return <ContactForm block={block} locale={locale} />;
     default: return null;
   }
 })}

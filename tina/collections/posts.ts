@@ -1,6 +1,7 @@
 import type { Collection } from 'tinacms';
+import { localeOfPath, localizePath } from '../../src/lib/i18n';
 
-/** "Il mio titolo, è bello!" → "il-mio-titolo-e-bello" */
+/** "My title, is nice!" → "my-title-is-nice" */
 export function slugify(input: string): string {
   return input
     .normalize('NFD')
@@ -13,36 +14,38 @@ export function slugify(input: string): string {
 
 export const posts: Collection = {
   name: 'post',
-  label: 'Blog',
+  label: 'Journal',
+  // Una cartella per lingua: content/posts/en/…, content/posts/it/… (stesso nome = traduzione).
   path: 'content/posts',
   format: 'md',
   defaultItem: () => ({ date: new Date().toISOString(), draft: false }),
   ui: {
-    router: ({ document }) => `/blog/${document._sys.filename}/`,
+    router: ({ document }) =>
+      localizePath(`/blog/${document._sys.filename}/`, localeOfPath(document._sys.relativePath)),
     // Il nome file (= URL) viene generato dal titolo: l'editor non deve pensarci.
     filename: {
       readonly: true,
-      slugify: (values) => slugify((values?.title as string) || 'nuovo-articolo'),
+      slugify: (values) => slugify((values?.title as string) || 'new-article'),
     },
   },
   fields: [
-    { type: 'string', name: 'title', label: 'Titolo', isTitle: true, required: true },
+    { type: 'string', name: 'title', label: 'Title', isTitle: true, required: true },
     {
       type: 'datetime',
       name: 'date',
-      label: 'Data',
+      label: 'Date',
       required: true,
       ui: { dateFormat: 'DD/MM/YYYY' },
     },
     {
       type: 'string',
       name: 'description',
-      label: 'Sommario (mostrato nell’elenco e nei motori di ricerca)',
+      label: 'Summary (shown in the list and in search engines)',
       ui: { component: 'textarea' },
     },
-    { type: 'image', name: 'image', label: 'Immagine di copertina' },
-    { type: 'string', name: 'tags', label: 'Tag', list: true },
-    { type: 'boolean', name: 'draft', label: 'Bozza (non visibile sul sito)' },
-    { type: 'rich-text', name: 'body', label: 'Testo', isBody: true },
+    { type: 'image', name: 'image', label: 'Cover image' },
+    { type: 'string', name: 'tags', label: 'Tags', list: true },
+    { type: 'boolean', name: 'draft', label: 'Draft (hidden from the site)' },
+    { type: 'rich-text', name: 'body', label: 'Text', isBody: true },
   ],
 };

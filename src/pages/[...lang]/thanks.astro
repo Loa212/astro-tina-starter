@@ -1,0 +1,20 @@
+---
+import Button from '../../components/Button.astro';
+import Icon from '../../components/Icon.astro';
+import Base from '../../layouts/Base.astro';
+import { localeFromParam, localizePath, t } from '../../lib/i18n';
+import { getSettings } from '../../lib/tina/data';
+
+const locale = localeFromParam(Astro.params.lang);
+if (!locale) return Astro.rewrite('/404');
+const ui = t(locale);
+const settings = await getSettings(locale);
+---
+<Base title={ui.thanksTitle} settings={settings.data.settings} locale={locale} noindex>
+  <main class="container-x flex flex-1 flex-col items-center justify-center py-28 text-center">
+    <span class="rise grid size-14 place-items-center rounded-full border border-fg"><Icon name="check" class="size-6" /></span>
+    <h1 class="rise mt-8 text-5xl sm:text-6xl [--i:1]">{ui.thanksTitle}</h1>
+    <p class="rise mt-5 max-w-md text-lg text-muted [--i:2]">{ui.thanksText}</p>
+    <div class="rise mt-10 [--i:3]"><Button href={localizePath('/', locale)}>{ui.backHome}</Button></div>
+  </main>
+</Base>

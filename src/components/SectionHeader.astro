@@ -1,0 +1,20 @@
+---
+import { tinaField } from '@tinacms/astro/tina-field';
+
+/** Intestazione comune delle sezioni: riga sopra il titolo, titolo, testo introduttivo. */
+interface Props {
+  block: { eyebrow?: string | null; heading?: string | null; intro?: string | null };
+  as?: 'h1' | 'h2';
+  align?: 'left' | 'center';
+  class?: string;
+}
+const { block, as: Heading = 'h2', align = 'left', class: className = '' } = Astro.props;
+const center = align === 'center';
+---
+{(block.eyebrow || block.heading || block.intro) && (
+  <div class:list={['max-w-2xl', center && 'mx-auto text-center', className]}>
+    {block.eyebrow && <p class:list={['eyebrow', center && 'justify-center']} data-tina-field={tinaField(block, 'eyebrow')}>{block.eyebrow}</p>}
+    {block.heading && <Heading class:list={['text-4xl sm:text-5xl lg:text-6xl', block.eyebrow && 'mt-5']} data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>}
+    {block.intro && <p class="mt-5 text-lg leading-relaxed text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
+  </div>
+)}

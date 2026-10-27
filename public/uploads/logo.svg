@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <circle cx="256" cy="256" r="256" fill="#facc15"/>
-  <circle cx="256" cy="256" r="200" fill="#0f172a"/>
-  <text x="256" y="292" font-family="Rubik, Arial, sans-serif" font-size="120" font-weight="700" fill="#facc15" text-anchor="middle">LOGO</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><path fill="#1b1a18" fill-rule="evenodd" d="M0 0h32v32H0zM11 32V17a5 5 0 0 1 10 0v15z"/></svg>

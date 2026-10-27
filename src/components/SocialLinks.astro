@@ -4,25 +4,25 @@ import Icon from './Icon.astro';
 interface Props {
   instagram?: string | null;
   facebook?: string | null;
+  linkedin?: string | null;
   class?: string;
 }
-const { instagram, facebook, class: className = '' } = Astro.props;
+const { instagram, facebook, linkedin, class: className = '' } = Astro.props;
+const links = [
+  { href: instagram, label: 'Instagram', icon: 'instagram' as const },
+  { href: linkedin, label: 'LinkedIn', icon: 'linkedin' as const },
+  { href: facebook, label: 'Facebook', icon: 'facebook' as const },
+].filter((l): l is typeof l & { href: string } => Boolean(l.href));
 ---
-<ul class:list={['flex items-center gap-2', className]}>
-  {instagram && (
-    <li>
-      <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"
-        class="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface hover:text-primary">
-        <Icon name="instagram" />
-      </a>
-    </li>
-  )}
-  {facebook && (
-    <li>
-      <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"
-        class="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface hover:text-primary">
-        <Icon name="facebook" />
-      </a>
-    </li>
-  )}
-</ul>
+{links.length > 0 && (
+  <ul class:list={['flex items-center gap-1', className]}>
+    {links.map((l) => (
+      <li>
+        <a href={l.href} target="_blank" rel="noopener noreferrer" aria-label={l.label}
+          class="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface hover:text-fg">
+          <Icon name={l.icon} class="size-4" />
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

@@ -1,25 +1,42 @@
 ---
 import { tinaField } from '@tinacms/astro/tina-field';
-
 import type { PageBlocksCards } from '../../../tina/__generated__/types';
+import Button from '../Button.astro';
+import SectionHeader from '../SectionHeader.astro';
 
 interface Props {
   block: PageBlocksCards;
 }
 const { block } = Astro.props;
+const items = (block.items ?? []).filter((i) => i !== null);
+const cols =
+  items.length % 4 === 0
+    ? 'lg:grid-cols-4'
+    : items.length % 3 === 0
+      ? 'lg:grid-cols-3'
+      : 'lg:grid-cols-2';
 ---
-<section class="container-x py-14 md:py-20">
-  <div class="mx-auto max-w-3xl text-center">
-    {block.intro && <p class="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-primary" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
-    {block.heading && <h2 class="mt-3 text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</h2>}
-  </div>
-  <div class="mt-12 grid gap-6 md:grid-cols-3" data-tina-field={tinaField(block, 'items')}>
-    {block.items?.map((item) => item && (
-      <article class="rounded-3xl bg-surface p-7 transition-colors hover:bg-surface-2">
-        <span class="block h-1 w-10 rounded-full bg-primary"></span>
-        <h3 class="mt-5 text-xl" data-tina-field={tinaField(item, 'title')}>{item.title}</h3>
-        {item.text && <p class="mt-3 leading-relaxed text-muted" data-tina-field={tinaField(item, 'text')}>{item.text}</p>}
-      </article>
-    ))}
+<section class="bg-surface py-20 md:py-28">
+  <div class="container-x">
+    <SectionHeader block={block} />
+    <div class:list={['grid gap-px border border-line bg-line sm:grid-cols-2', cols, (block.heading || block.intro) && 'mt-14 md:mt-16']} data-tina-field={tinaField(block, 'items')}>
+      {items.map((item, i) => (
+        <article class="flex flex-col bg-surface p-7 md:p-8">
+          <span class="font-display text-xl text-accent" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          {item.image && (
+            <div class="mt-6 aspect-[4/3] overflow-hidden">
+              <img src={item.image} alt="" width="800" height="600" loading="lazy" class="size-full object-cover" data-tina-field={tinaField(item, 'image')} />
+            </div>
+          )}
+          <h3 class="mt-10 text-xl" data-tina-field={tinaField(item, 'title')}>{item.title}</h3>
+          {item.text && <p class="mt-3 leading-relaxed text-muted" data-tina-field={tinaField(item, 'text')}>{item.text}</p>}
+        </article>
+      ))}
+    </div>
+    {(block.buttons?.length ?? 0) > 0 && (
+      <div class="mt-12 flex flex-wrap justify-center gap-3" data-tina-field={tinaField(block, 'buttons')}>
+        {block.buttons!.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
+      </div>
+    )}
   </div>
 </section>

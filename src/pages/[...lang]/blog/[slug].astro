@@ -1,0 +1,26 @@
+---
+import TinaIsland from '@tinacms/astro/TinaIsland.astro';
+import PostBody from '../../../components/islands/PostBody.astro';
+import Base from '../../../layouts/Base.astro';
+import { localeFromParam } from '../../../lib/i18n';
+import { getAlternates, getPost, getSettings } from '../../../lib/tina/data';
+import { islands } from '../../../lib/tina/islands';
+
+const locale = localeFromParam(Astro.params.lang);
+const slug = (Astro.params.slug ?? '').replace(/\/+$/, '');
+if (!locale || !/^[a-z0-9-]+$/.test(slug)) return Astro.rewrite('/404');
+
+const [post, settings, alternates] = await Promise.all([
+  getPost(locale, slug).catch(() => null),
+  getSettings(locale),
+  getAlternates('post', slug),
+]);
+const data = post?.data?.post;
+// Le bozze si vedono solo dentro l'editor.
+if (!data || (data.draft && !Astro.locals.tinaEdit)) return Astro.rewrite('/404');
+---
+<Base title={data.title} description={data.description} settings={settings.data.settings} locale={locale} alternates={alternates} image={data.image} noindex={Boolean(data.draft)}>
+  <TinaIsland name="post" wrapper={islands.post.wrapper} params={{ locale, slug }} primary>
+    <PostBody post={data} />
+  </TinaIsland>
+</Base>

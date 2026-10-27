@@ -5,7 +5,10 @@ può aggiornare da solo, con un CMS **self-hosted** e un solo container da deplo
 
 - **Astro 7** (pagine renderizzate dal server: una modifica salvata nel CMS è online subito) + **Tailwind CSS 4**
 - **TinaCMS self-hosted** con *visual editing* da `/admin/index.html` (login username/password, nessun servizio esterno)
-- **Blog**: raccolta articoli con elenco, pagina articolo, bozze, tag, blocco "ultimi articoli"
+- **Multilingua**: inglese (predefinito, URL senza prefisso) e italiano (`/it/…`), una cartella di contenuti per lingua
+- **Struttura da landing page**: hero con immagine, numeri chiave, immagine + vantaggi, testimonianze, servizi,
+  domande frequenti, ultimi articoli, invito all'azione; tema chiaro e minimale con foto di esempio
+- **Blog** ("Journal"): elenco, pagina articolo, bozze, tag, blocco "ultimi articoli"
 - **Un solo container** (Express): backend Tina su `/api/tina/*`, Astro per tutto il resto; indice in **SQLite** su volume,
   contenuti salvati come **commit su GitHub**
 - **Modulo contatti** → email via **Resend** (niente database), anti-spam honeypot + Turnstile opzionale
@@ -14,20 +17,35 @@ può aggiornare da solo, con un CMS **self-hosted** e un solo container da deplo
 
 1. Copia la cartella (senza `node_modules`, `dist`, `.tina`, `.git`) o usala come template GitHub.
 2. `pnpm install`, poi cambia: `name` in `package.json`, `site` in `astro.config.mjs`, i colori/font in
-   `src/styles/global.css` (blocco `@theme`), logo e immagini in `public/uploads/` (`logo.svg`, `hero.svg`, `og.png`),
+   `src/styles/global.css` (blocco `@theme`), logo e immagini in `public/uploads/` (`logo.svg`, `og.jpg` e le foto),
    favicon in `public/`.
-3. Contenuti iniziali: `content/settings/site.json` (nome, menu, social, contatti), `content/pages/*.md`, `content/posts/*.md`.
+3. Contenuti iniziali, una copia per lingua: `content/settings/<lingua>.json` (nome, menu, pulsante in alto, social,
+   contatti), `content/pages/<lingua>/*.md`, `content/posts/<lingua>/*.md`. I testi fissi dell'interfaccia (etichette
+   del modulo, 404, "Tutti gli articoli"…) sono in `src/lib/i18n.ts`.
 4. `pnpm dev` e apri `http://localhost:4321/admin/index.html` per modificare tutto visivamente.
 5. Deploy: vedi sotto.
+
+### Lingue
+Le lingue sono in `src/lib/i18n.ts` (`locales`): la prima è la predefinita e ha URL senza prefisso (`/about/`), le
+altre hanno il prefisso (`/it/about/`). TinaCMS non ha un sistema di traduzioni integrato: si usa una **cartella per
+lingua**, come consigliato dalla [guida Tina](https://tina.io/docs/guides/internationalization).
+
+- **Traduzione = stesso nome file** in un'altra cartella (`pages/en/about.md` ↔ `pages/it/about.md`): il selettore
+  lingua e i tag `hreflang` collegano le due versioni. Se una traduzione manca, il selettore porta alla home dell'altra lingua.
+- I link nei contenuti (menu, pulsanti) si scrivono completi di prefisso: `/it/contact/`.
+- Per aggiungere una lingua: il codice in `locales` e `localeMeta`, i testi in `ui`, poi `content/settings/<lingua>.json`
+  e le cartelle `content/pages/<lingua>/` e `content/posts/<lingua>/`.
 
 ## Per chi aggiorna i contenuti
 
 1. Vai su `https://<dominio>/admin/index.html` e accedi con username e password.
-2. A sinistra: **Pagine**, **Blog**, **Impostazioni sito** (nome, logo, menu, social, contatti, piè di pagina).
+2. A sinistra: **Pages**, **Journal**, **Site settings** (nome, logo, menu, pulsante in alto, social, contatti, piè di
+   pagina). Ogni raccolta ha una cartella per lingua: `en` (inglese) e `it` (italiano).
 3. Apri una pagina: la vedi come i visitatori. **Clicca su un testo** per modificarlo nel pannello a lato, oppure usa
-   la lista **Sezioni** per aggiungere, spostare o eliminare blocchi.
-4. **Blog**: *Create New* → titolo, data, sommario, immagine, tag, testo. L'indirizzo viene generato dal titolo.
-   Spunta **Bozza** per non pubblicare ancora (la bozza si vede solo dentro l'editor).
+   la lista **Sections** per aggiungere, spostare o eliminare blocchi.
+4. **Journal**: entra nella cartella della lingua, poi *Create New* → titolo, data, sommario, immagine, tag, testo.
+   L'indirizzo viene generato dal titolo. Spunta **Draft** per non pubblicare ancora (la bozza si vede solo
+   dentro l'editor). Una traduzione si collega all'originale se ha lo stesso nome file.
 5. **Salva**: la modifica è visibile subito ricaricando la pagina. In sottofondo viene fatto un commit su GitHub
    e il sito si ridistribuisce da solo in 1–3 minuti.
 6. **Immagini**: scegli tra quelle in *Media*. Per aggiungerne di nuove chiedi a chi gestisce il codice (vanno in `public/uploads/`).
@@ -87,15 +105,38 @@ Per resettare tutto (utenti compresi): svuota il volume `/data` e ridistribuisci
 ### Struttura
 ```
 content/            contenuti (md/json): la fonte di verità, versionata su git
-  pages/            pagine a blocchi · posts/  articoli del blog · settings/site.json
+  pages/<lingua>/   pagine a blocchi · posts/<lingua>/  articoli · settings/<lingua>.json
 tina/               schema CMS (collections/), config.ts, database.ts (SQLite + GitHub), sqlite-eager.ts
 server/             Express: backend Tina + Astro + utente iniziale + re-indicizzazione all'avvio
-src/components/blocks   un componente per tipo di sezione (hero, richText, steps, cards, cta, contactList, image, contactForm, latestPosts)
+src/components/blocks   un componente per tipo di sezione (hero, stats, feature, testimonials, cards, steps, faq,
+                        richText, image, latestPosts, cta, contactList, contactForm)
 src/components/islands  regioni rieditabili (pagina, articolo, header, footer)
+src/lib/i18n.ts     lingue, URL per lingua, testi fissi dell'interfaccia
 src/lib/tina        caricamento dati (databaseClient) e registro isole
-src/pages           [...slug].astro (pagine), blog/, api/contatto.ts, grazie.astro, tina-island/[name].ts
+src/pages           [...slug].astro (pagine, con o senza prefisso lingua), [...lang]/blog/, [...lang]/thanks.astro,
+                    api/contact.ts, tina-island/[name].ts
 public/uploads      immagini scelte dal CMS
 ```
+
+### Immagini di esempio
+Le foto in `public/uploads/` vengono da [Unsplash](https://unsplash.com) ([licenza Unsplash](https://unsplash.com/license):
+uso libero, anche commerciale, attribuzione non obbligatoria), scaricate da `images.unsplash.com/photo-<id>`:
+
+| File | id |
+|---|---|
+| `house-dusk.jpg`, `og.jpg` | `1600585154340-be6161a56a0c` |
+| `timber-house.jpg` | `1600566753190-17f0baa2a6c3` |
+| `project-cedar.jpg` | `1600047509807-ba8f99d2cdde` |
+| `project-white.jpg` | `1523217582562-09d0def993a6` |
+| `project-duplex.jpg` | `1600563438938-a9a27216b4f5` |
+| `studio.jpg` | `1497366811353-6870744d04b2` |
+| `staircase.jpg` | `1502005229762-cf1b2da7c5d6` |
+| `white-facade.jpg` | `1479839672679-a46483c0e7c8` |
+| `angular-building.jpg` | `1487958449943-2429e8be8625` |
+| `drawings.jpg` | `1503387762-592deb58ef4e` |
+| `timber-interior.jpg` | `1600607687939-ce8a6c25118c` |
+
+Sono segnaposto per la demo ("Halden Studio" è uno studio inventato): sostituiscile con le foto del cliente.
 
 ### Aggiungere un tipo di sezione
 1. Template in `tina/collections/pages.ts` (campi con lo stesso nome in template diversi devono avere lo stesso tipo).
@@ -103,7 +144,7 @@ public/uploads      immagini scelte dal CMS
 3. `case 'PageBlocks<Nome>'` in `BlockRenderer.astro`. Riavvia `pnpm dev` (rigenera `tina/__generated__`).
 
 ### Privacy e cookie
-La pagina `/privacy/` (`content/pages/privacy.md`, modificabile dal CMS) è linkata dal footer e dal consenso del modulo:
+La pagina `/privacy/` (`content/pages/<lingua>/privacy.md`, modificabile dal CMS) è linkata dal footer e dal consenso del modulo:
 compila i segnaposto **[…]** e falla rivedere a chi ne risponde. Il sito non usa cookie di profilazione né di terze parti,
 quindi non serve un banner; se aggiungi analytics o embed esterni, serve un banner con consenso.
 

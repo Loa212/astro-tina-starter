@@ -1,26 +1,39 @@
 ---
 import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
 import { tinaField } from '@tinacms/astro/tina-field';
-import { formatDate, type PostData } from '../../lib/tina/data';
+import { formatDate, localeOfPath, localizePath, t } from '../../lib/i18n';
+import type { PostData } from '../../lib/tina/data';
 
 interface Props {
   post: PostData | undefined | null;
 }
 const { post } = Astro.props;
+const locale = localeOfPath(post?._sys.relativePath ?? '');
+const ui = t(locale);
 ---
 {post && (
-  <article class="container-x py-14 md:py-20">
-    <div class="mx-auto max-w-3xl">
-      <a href="/blog/" class="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-primary">← Blog</a>
-      <h1 class="mt-4 text-4xl sm:text-5xl" data-tina-field={tinaField(post, 'title')}>{post.title}</h1>
-      <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-        <time datetime={post.date} data-tina-field={tinaField(post, 'date')}>{formatDate(post.date)}</time>
-        {post.tags?.filter(Boolean).map((tag) => <span class="rounded-full bg-surface px-3 py-1 text-xs uppercase tracking-wider">{tag}</span>)}
-        {post.draft && <span class="rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase tracking-wider text-bg">Bozza</span>}
-      </p>
-      {post.description && <p class="mt-6 text-xl text-muted" data-tina-field={tinaField(post, 'description')}>{post.description}</p>}
-      {post.image && <img src={post.image} alt="" width="1600" height="600" class="mt-8 w-full rounded-3xl object-cover" data-tina-field={tinaField(post, 'image')} />}
-      <div class="rich mt-10" data-tina-field={tinaField(post, 'body')}><TinaMarkdown content={post.body} /></div>
+  <article class="pb-20 md:pb-28">
+    <header class="container-x pt-12 md:pt-20">
+      <div class="mx-auto max-w-3xl">
+        <a href={localizePath('/blog/', locale)} class="eyebrow transition-colors hover:text-fg">{ui.backToBlog}</a>
+        <h1 class="rise mt-8 text-5xl sm:text-6xl md:text-7xl" data-tina-field={tinaField(post, 'title')}>{post.title}</h1>
+        {post.description && <p class="rise mt-6 text-xl leading-relaxed text-muted [--i:1]" data-tina-field={tinaField(post, 'description')}>{post.description}</p>}
+        <p class="rise mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium uppercase tracking-[0.14em] text-muted [--i:2]">
+          <time datetime={post.date} data-tina-field={tinaField(post, 'date')}>{formatDate(post.date, locale)}</time>
+          {post.tags?.filter(Boolean).map((tag) => <span class="flex items-center gap-4"><span class="h-px w-4 bg-line" aria-hidden="true"></span>{tag}</span>)}
+          {post.draft && <span class="rounded-full bg-accent px-3 py-1 text-bg">{ui.draft}</span>}
+        </p>
+      </div>
+    </header>
+    {post.image && (
+      <figure class="container-x mt-12 md:mt-16">
+        <div class="mx-auto aspect-[16/9] max-w-5xl overflow-hidden bg-surface">
+          <img src={post.image} alt="" width="1600" height="900" class="settle size-full object-cover" data-tina-field={tinaField(post, 'image')} />
+        </div>
+      </figure>
+    )}
+    <div class="container-x mt-12 md:mt-16">
+      <div class="rich mx-auto max-w-2xl" data-tina-field={tinaField(post, 'body')}><TinaMarkdown content={post.body} /></div>
     </div>
   </article>
 )}

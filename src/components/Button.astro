@@ -1,21 +1,26 @@
 ---
+import Icon from './Icon.astro';
+
 interface Props {
   href: string;
   variant?: 'primary' | 'outline' | string | null;
+  size?: 'md' | 'sm';
   class?: string;
   'data-tina-field'?: string;
 }
-const { href, variant, class: className = '', ...rest } = Astro.props;
+const { href, variant, size = 'md', class: className = '', ...rest } = Astro.props;
 const isExternal = /^https?:\/\//.test(href);
 const isFile = /\.(pdf|docx?|xlsx?)$/i.test(href);
+const outline = variant === 'outline';
 ---
 <a
   href={href}
-  class:list={['btn', variant === 'outline' ? 'btn-outline' : 'btn-primary', className]}
+  class:list={['btn group/btn', outline ? 'btn-outline' : 'btn-primary', size === 'sm' && 'btn-sm', className]}
   target={isExternal ? '_blank' : undefined}
   rel={isExternal ? 'noopener noreferrer' : undefined}
   download={isFile ? '' : undefined}
   {...rest}
 >
   <slot />
+  {!outline && size === 'md' && <Icon name="arrow" class="-mr-1 size-4 transition-transform duration-200 group-hover/btn:translate-x-0.5" />}
 </a>

@@ -1,7 +1,6 @@
 ---
 import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
 import { tinaField } from '@tinacms/astro/tina-field';
-
 import type { PageBlocksRichText } from '../../../tina/__generated__/types';
 
 interface Props {
@@ -11,9 +10,12 @@ interface Props {
 const { block, first = false } = Astro.props;
 const Heading = first ? 'h1' : 'h2';
 ---
-<section class="container-x py-14 md:py-20">
+<section class:list={['container-x', first ? 'pt-16 pb-14 md:pt-24 md:pb-20' : 'py-16 md:py-24']}>
   <div class="mx-auto max-w-3xl">
-    {block.heading && <Heading class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>}
-    {block.body && <div class:list={['rich', block.heading && 'mt-6']} data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>}
+    {block.eyebrow && <p class:list={['eyebrow', first && 'rise']} data-tina-field={tinaField(block, 'eyebrow')}>{block.eyebrow}</p>}
+    {block.heading && (
+      <Heading class:list={[first ? 'rise text-5xl sm:text-6xl md:text-7xl [--i:1]' : 'text-4xl sm:text-5xl', block.eyebrow && 'mt-6']} data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>
+    )}
+    {block.body && <div class:list={['rich', first && 'rise [--i:2]', block.heading && 'mt-8']} data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>}
   </div>
 </section>
