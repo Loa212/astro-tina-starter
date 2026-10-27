@@ -1,28 +1,31 @@
 ---
-import { tinaField } from '@tinacms/astro/tina-field';
 import type { PageBlocksLatestPosts } from '../../../tina/__generated__/types';
-import { formatDate, listPosts } from '../../lib/tina/data';
+import { type Locale, localizePath, t } from '../../lib/i18n';
+import { listPosts } from '../../lib/tina/data';
+import Icon from '../Icon.astro';
 import PostCard from '../PostCard.astro';
+import SectionHeader from '../SectionHeader.astro';
 
 interface Props {
   block: PageBlocksLatestPosts;
+  locale: Locale;
 }
-const { block } = Astro.props;
-const posts = await listPosts(block.count ?? 3);
+const { block, locale } = Astro.props;
+const ui = t(locale);
+const posts = await listPosts(locale, block.count ?? 3);
 ---
-<section class="container-x py-14 md:py-20">
-  <div class="flex flex-wrap items-end justify-between gap-4">
-    <div>
-      {block.heading && <h2 class="text-3xl sm:text-4xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</h2>}
-      {block.intro && <p class="mt-2 text-lg text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
-    </div>
-    <a href="/blog/" class="font-heading text-sm font-semibold uppercase tracking-wide text-primary hover:underline">Tutti gli articoli →</a>
+<section class="container-x py-20 md:py-28">
+  <div class="flex flex-wrap items-end justify-between gap-6">
+    <SectionHeader block={block} />
+    <a href={localizePath('/blog/', locale)} class="group inline-flex items-center gap-2 text-sm font-medium">
+      {ui.allPosts}<Icon name="arrow" class="size-4 transition-transform group-hover:translate-x-0.5" />
+    </a>
   </div>
   {posts.length === 0 ? (
-    <p class="mt-8 text-muted">Nessun articolo pubblicato.</p>
+    <p class="mt-10 text-muted">{ui.blogEmpty}</p>
   ) : (
-    <div class="mt-10 grid gap-6 md:grid-cols-3">
-      {posts.map((post) => <PostCard post={post} />)}
+    <div class="mt-14 grid gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-3">
+      {posts.map((post) => <PostCard post={post} locale={locale} />)}
     </div>
   )}
 </section>

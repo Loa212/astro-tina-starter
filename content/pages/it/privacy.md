@@ -13,7 +13,7 @@ blocks:
 
 
       Il titolare del trattamento è **[DENOMINAZIONE]**, con sede in **[INDIRIZZO]**. Puoi scrivere a
-      [info@example.com](mailto:info@example.com).
+      [hello@example.com](mailto:hello@example.com).
 
 
       ### 2. Quali dati trattiamo e perché
@@ -51,9 +51,9 @@ blocks:
 
 
       Questo sito **non usa cookie di profilazione, pubblicitari o di terze parti** e non utilizza
-      strumenti di analisi del traffico; i caratteri tipografici sono ospitati sul sito. Gli unici
-      cookie sono tecnici (sessione dell’area riservata e cookie temporaneo dei redattori) e non
-      richiedono consenso: per questo non c’è un banner. Se in futuro venissero aggiunti strumenti che
-      richiedono il consenso, questa pagina e il sito verranno aggiornati. I collegamenti ai social
+      strumenti di analisi del traffico; i caratteri tipografici e le immagini sono ospitati sul sito.
+      Gli unici cookie sono tecnici (sessione dell’area riservata e cookie temporaneo dei redattori) e
+      non richiedono consenso: per questo non c’è un banner. Se in futuro venissero aggiunti strumenti
+      che richiedono il consenso, questa pagina e il sito verranno aggiornati. I collegamenti ai social
       portano a servizi esterni con proprie informative.
 ---

@@ -1,0 +1,22 @@
+{
+  "siteName": "Halden Studio",
+  "tagline": "Architecture & interiors",
+  "logo": "/uploads/logo.svg",
+  "nav": [
+    { "label": "Studio", "href": "/about/" },
+    { "label": "Journal", "href": "/blog/" },
+    { "label": "Contact", "href": "/contact/" }
+  ],
+  "cta": { "label": "Book a consultation", "href": "/contact/" },
+  "social": {
+    "instagram": "https://www.instagram.com/",
+    "linkedin": "https://www.linkedin.com/"
+  },
+  "contacts": {
+    "email": "hello@example.com",
+    "phone": "+39 02 0000 0000",
+    "whatsapp": "+390000000000",
+    "address": "Via Esempio 12\n20121 Milan, Italy"
+  },
+  "footerText": "An independent practice designing calm, light-filled homes, renovations and interiors across northern Italy."
+}

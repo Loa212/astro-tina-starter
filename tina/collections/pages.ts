@@ -1,64 +1,159 @@
 import type { Collection, Template, TinaField } from 'tinacms';
+import { localeOfPath, localizePath } from '../../src/lib/i18n';
 
 const buttons: TinaField = {
   type: 'object',
   name: 'buttons',
-  label: 'Pulsanti',
+  label: 'Buttons',
   list: true,
-  ui: { itemProps: (item) => ({ label: item?.label || 'Pulsante' }) },
+  ui: { itemProps: (item) => ({ label: item?.label || 'Button' }) },
   fields: [
-    { type: 'string', name: 'label', label: 'Testo', required: true },
-    { type: 'string', name: 'href', label: 'Link', required: true },
+    { type: 'string', name: 'label', label: 'Text', required: true },
+    {
+      type: 'string',
+      name: 'href',
+      label: 'Link (e.g. /contact/ or /it/contact/)',
+      required: true,
+    },
     {
       type: 'string',
       name: 'variant',
-      label: 'Stile',
+      label: 'Style',
       options: [
-        { value: 'primary', label: 'Giallo (principale)' },
-        { value: 'outline', label: 'Solo contorno' },
+        { value: 'primary', label: 'Solid (main action)' },
+        { value: 'outline', label: 'Outline' },
       ],
     },
   ],
 };
 
+const eyebrow: TinaField = { type: 'string', name: 'eyebrow', label: 'Small line above the title' };
+const intro: TinaField = {
+  type: 'string',
+  name: 'intro',
+  label: 'Intro text',
+  ui: { component: 'textarea' },
+};
+
 const hero: Template = {
   name: 'hero',
-  label: 'Intestazione (hero)',
+  label: 'Hero',
   ui: { itemProps: (item) => ({ label: `Hero: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'eyebrow', label: 'Riga sopra il titolo' },
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'rich-text', name: 'body', label: 'Testo' },
-    { type: 'image', name: 'image', label: 'Immagine / logo' },
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    { type: 'rich-text', name: 'body', label: 'Text' },
+    { type: 'image', name: 'image', label: 'Image (shown beside the text)' },
+    { type: 'string', name: 'imageAlt', label: 'Image description (accessibility)' },
     buttons,
+    { type: 'string', name: 'note', label: 'Small print under the buttons (e.g. a reassurance)' },
+  ],
+};
+
+const feature: Template = {
+  name: 'feature',
+  label: 'Image and text',
+  ui: { itemProps: (item) => ({ label: `Image and text: ${item?.heading ?? ''}` }) },
+  fields: [
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    { type: 'rich-text', name: 'body', label: 'Text (lists become a checklist)' },
+    { type: 'image', name: 'image', label: 'Image' },
+    { type: 'string', name: 'imageAlt', label: 'Image description (accessibility)' },
+    {
+      type: 'string',
+      name: 'imagePosition',
+      label: 'Image position',
+      options: [
+        { value: 'left', label: 'Left' },
+        { value: 'right', label: 'Right' },
+      ],
+    },
+    buttons,
+  ],
+};
+
+const stats: Template = {
+  name: 'stats',
+  label: 'Key figures',
+  ui: { itemProps: () => ({ label: 'Key figures' }) },
+  fields: [
+    {
+      type: 'object',
+      name: 'items',
+      label: 'Figures',
+      list: true,
+      ui: {
+        itemProps: (item) => ({
+          label: `${item?.value ?? ''} ${item?.label ?? ''}`.trim() || 'Figure',
+        }),
+      },
+      fields: [
+        { type: 'string', name: 'value', label: 'Figure (e.g. 120+)', required: true },
+        { type: 'string', name: 'label', label: 'What it counts', required: true },
+      ],
+    },
+  ],
+};
+
+const testimonials: Template = {
+  name: 'testimonials',
+  label: 'Testimonials',
+  ui: { itemProps: (item) => ({ label: `Testimonials: ${item?.heading ?? ''}` }) },
+  fields: [
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    intro,
+    {
+      type: 'object',
+      name: 'items',
+      label: 'Testimonials',
+      list: true,
+      ui: { itemProps: (item) => ({ label: item?.author || 'Testimonial' }) },
+      fields: [
+        {
+          type: 'string',
+          name: 'quote',
+          label: 'Quote',
+          required: true,
+          ui: { component: 'textarea' },
+        },
+        { type: 'string', name: 'author', label: 'Name', required: true },
+        { type: 'string', name: 'role', label: 'Project or role' },
+        { type: 'image', name: 'image', label: 'Project photo' },
+      ],
+    },
   ],
 };
 
 const richText: Template = {
   name: 'richText',
-  label: 'Testo',
-  ui: { itemProps: (item) => ({ label: `Testo: ${item?.heading ?? ''}` }) },
+  label: 'Text',
+  ui: { itemProps: (item) => ({ label: `Text: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'rich-text', name: 'body', label: 'Contenuto' },
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    { type: 'rich-text', name: 'body', label: 'Content' },
   ],
 };
 
 const steps: Template = {
   name: 'steps',
-  label: 'Passaggi numerati',
-  ui: { itemProps: (item) => ({ label: `Passaggi: ${item?.heading ?? ''}` }) },
+  label: 'Numbered steps',
+  ui: { itemProps: (item) => ({ label: `Steps: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    intro,
     {
       type: 'object',
       name: 'items',
-      label: 'Passaggi',
+      label: 'Steps',
       list: true,
-      ui: { itemProps: (item) => ({ label: item?.title || 'Passaggio' }) },
+      ui: { itemProps: (item) => ({ label: item?.title || 'Step' }) },
       fields: [
-        { type: 'string', name: 'title', label: 'Titolo', required: true },
-        { type: 'string', name: 'text', label: 'Testo', ui: { component: 'textarea' } },
+        { type: 'string', name: 'title', label: 'Title', required: true },
+        { type: 'string', name: 'text', label: 'Text', ui: { component: 'textarea' } },
       ],
     },
   ],
@@ -66,20 +161,45 @@ const steps: Template = {
 
 const cards: Template = {
   name: 'cards',
-  label: 'Schede',
-  ui: { itemProps: (item) => ({ label: `Schede: ${item?.heading ?? ''}` }) },
+  label: 'Columns',
+  ui: { itemProps: (item) => ({ label: `Columns: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'string', name: 'intro', label: 'Sottotitolo' },
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    intro,
     {
       type: 'object',
       name: 'items',
-      label: 'Schede',
+      label: 'Columns',
       list: true,
-      ui: { itemProps: (item) => ({ label: item?.title || 'Scheda' }) },
+      ui: { itemProps: (item) => ({ label: item?.title || 'Column' }) },
       fields: [
-        { type: 'string', name: 'title', label: 'Titolo', required: true },
-        { type: 'string', name: 'text', label: 'Testo', ui: { component: 'textarea' } },
+        { type: 'string', name: 'title', label: 'Title', required: true },
+        { type: 'string', name: 'text', label: 'Text', ui: { component: 'textarea' } },
+        { type: 'image', name: 'image', label: 'Image (optional)' },
+      ],
+    },
+    buttons,
+  ],
+};
+
+const faq: Template = {
+  name: 'faq',
+  label: 'Questions and answers',
+  ui: { itemProps: (item) => ({ label: `FAQ: ${item?.heading ?? ''}` }) },
+  fields: [
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    intro,
+    {
+      type: 'object',
+      name: 'items',
+      label: 'Questions',
+      list: true,
+      ui: { itemProps: (item) => ({ label: item?.question || 'Question' }) },
+      fields: [
+        { type: 'string', name: 'question', label: 'Question', required: true },
+        { type: 'rich-text', name: 'answer', label: 'Answer' },
       ],
     },
   ],
@@ -87,106 +207,123 @@ const cards: Template = {
 
 const cta: Template = {
   name: 'cta',
-  label: 'Invito all’azione',
+  label: 'Call to action',
   ui: { itemProps: (item) => ({ label: `CTA: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'string', name: 'text', label: 'Testo', ui: { component: 'textarea' } },
+    { type: 'string', name: 'heading', label: 'Title' },
+    { type: 'string', name: 'text', label: 'Text', ui: { component: 'textarea' } },
     buttons,
   ],
 };
 
 const contactList: Template = {
   name: 'contactList',
-  label: 'Elenco contatti',
-  ui: { itemProps: (item) => ({ label: `Contatti: ${item?.heading ?? ''}` }) },
+  label: 'Contact details',
+  ui: { itemProps: (item) => ({ label: `Contacts: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'string', name: 'intro', label: 'Testo introduttivo', ui: { component: 'textarea' } },
+    { type: 'string', name: 'heading', label: 'Title' },
+    intro,
     {
       type: 'object',
       name: 'items',
-      label: 'Contatti',
+      label: 'Contacts',
       list: true,
-      ui: { itemProps: (item) => ({ label: item?.label || item?.kind || 'Contatto' }) },
+      ui: { itemProps: (item) => ({ label: item?.label || item?.kind || 'Contact' }) },
       fields: [
         {
           type: 'string',
           name: 'kind',
-          label: 'Tipo',
+          label: 'Type',
           required: true,
           options: [
-            { value: 'whatsapp', label: 'WhatsApp' },
             { value: 'email', label: 'Email' },
-            { value: 'facebook', label: 'Facebook' },
+            { value: 'phone', label: 'Phone' },
+            { value: 'whatsapp', label: 'WhatsApp' },
             { value: 'instagram', label: 'Instagram' },
-            { value: 'phone', label: 'Telefono' },
-            { value: 'link', label: 'Altro link' },
+            { value: 'facebook', label: 'Facebook' },
+            { value: 'linkedin', label: 'LinkedIn' },
+            { value: 'link', label: 'Other link' },
           ],
         },
-        { type: 'string', name: 'label', label: 'Testo mostrato', required: true },
+        { type: 'string', name: 'label', label: 'Text shown', required: true },
         { type: 'string', name: 'href', label: 'Link (https://…, mailto:, tel:)', required: true },
       ],
     },
-    { type: 'image', name: 'image', label: 'Immagine a lato' },
-    { type: 'string', name: 'imageAlt', label: 'Descrizione immagine' },
+    { type: 'image', name: 'image', label: 'Image beside the list' },
+    { type: 'string', name: 'imageAlt', label: 'Image description (accessibility)' },
   ],
 };
 
 const image: Template = {
   name: 'image',
-  label: 'Immagine',
-  ui: { itemProps: (item) => ({ label: `Immagine: ${item?.alt ?? ''}` }) },
+  label: 'Wide image',
+  ui: { itemProps: (item) => ({ label: `Image: ${item?.alt ?? ''}` }) },
   fields: [
-    { type: 'image', name: 'image', label: 'Immagine' },
-    { type: 'string', name: 'alt', label: 'Descrizione (accessibilità)' },
+    { type: 'image', name: 'image', label: 'Image' },
+    { type: 'string', name: 'alt', label: 'Description (accessibility)' },
   ],
 };
 
 const contactForm: Template = {
   name: 'contactForm',
-  label: 'Modulo contatti',
-  ui: { itemProps: (item) => ({ label: `Modulo contatti: ${item?.heading ?? ''}` }) },
-  fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'string', name: 'intro', label: 'Testo introduttivo', ui: { component: 'textarea' } },
-  ],
+  label: 'Contact form',
+  ui: { itemProps: (item) => ({ label: `Contact form: ${item?.heading ?? ''}` }) },
+  fields: [{ type: 'string', name: 'heading', label: 'Title' }, intro],
 };
 
 const latestPosts: Template = {
   name: 'latestPosts',
-  label: 'Ultimi articoli del blog',
-  ui: { itemProps: (item) => ({ label: `Ultimi articoli: ${item?.heading ?? ''}` }) },
+  label: 'Latest articles',
+  ui: { itemProps: (item) => ({ label: `Latest articles: ${item?.heading ?? ''}` }) },
   fields: [
-    { type: 'string', name: 'heading', label: 'Titolo' },
-    { type: 'string', name: 'intro', label: 'Testo introduttivo' },
-    { type: 'number', name: 'count', label: 'Quanti articoli mostrare (default 3)' },
+    eyebrow,
+    { type: 'string', name: 'heading', label: 'Title' },
+    intro,
+    { type: 'number', name: 'count', label: 'How many articles (default 3)' },
   ],
 };
 
 export const pages: Collection = {
   name: 'page',
-  label: 'Pagine',
+  label: 'Pages',
+  // Una cartella per lingua: content/pages/en/about.md, content/pages/it/about.md (stesso nome = traduzione).
   path: 'content/pages',
   format: 'md',
   ui: {
-    router: ({ document }) =>
-      document._sys.filename === 'home' ? '/' : `/${document._sys.filename}/`,
+    router: ({ document }) => {
+      const locale = localeOfPath(document._sys.relativePath);
+      const slug = document._sys.filename;
+      return localizePath(slug === 'home' ? '/' : `/${slug}/`, locale);
+    },
   },
   fields: [
-    { type: 'string', name: 'title', label: 'Titolo pagina (SEO)', isTitle: true, required: true },
+    { type: 'string', name: 'title', label: 'Page title (SEO)', isTitle: true, required: true },
     {
       type: 'string',
       name: 'seoDescription',
-      label: 'Descrizione (SEO, max 160 caratteri)',
+      label: 'Description (SEO, max 160 characters)',
       ui: { component: 'textarea' },
     },
     {
       type: 'object',
       name: 'blocks',
-      label: 'Sezioni',
+      label: 'Sections',
       list: true,
-      templates: [hero, richText, steps, cards, cta, contactList, image, contactForm, latestPosts],
+      templates: [
+        hero,
+        stats,
+        feature,
+        testimonials,
+        cards,
+        steps,
+        faq,
+        richText,
+        image,
+        latestPosts,
+        cta,
+        contactList,
+        contactForm,
+      ],
     },
   ],
 };

@@ -2,14 +2,18 @@
 import TinaIsland from '@tinacms/astro/TinaIsland.astro';
 import SiteFooter from '../components/islands/SiteFooter.astro';
 import SiteHeader from '../components/islands/SiteHeader.astro';
+import { type Alternates, defaultLocale, type Locale, localeMeta, t } from '../lib/i18n';
 import type { SettingsData } from '../lib/tina/data';
-import { islands } from '../lib/tina/islands';
+import { chromeParams, islands } from '../lib/tina/islands';
 import '../styles/global.css';
 
 interface Props {
   title: string;
   description?: string | null;
   settings: SettingsData | undefined | null;
+  locale: Locale;
+  /** URL della stessa pagina nelle altre lingue (hreflang + selettore lingua). */
+  alternates?: Alternates;
   image?: string | null;
   noindex?: boolean;
 }
@@ -17,20 +21,26 @@ const {
   title,
   description,
   settings,
-  image = '/uploads/og.png',
+  locale,
+  alternates = {},
+  image = '/uploads/og.jpg',
   noindex: pageNoindex = false,
 } = Astro.props;
 // SITE_NOINDEX=true sul dominio provvisorio: niente indicizzazione finché il sito non è sul dominio definitivo.
 const noindex = pageNoindex || process.env.SITE_NOINDEX === 'true';
-const siteName = settings?.siteName ?? 'Sito';
+const siteName = settings?.siteName ?? 'Site';
 const fullTitle = title.toLowerCase().includes(siteName.toLowerCase())
   ? title
   : `${title} – ${siteName}`;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
-const ogImage = new URL(image ?? '/uploads/og.png', Astro.site ?? Astro.url.origin);
+const origin = Astro.site ?? Astro.url.origin;
+const canonical = new URL(Astro.url.pathname, origin);
+const ogImage = new URL(image ?? '/uploads/og.jpg', origin);
+const path = Astro.url.pathname;
+const params = chromeParams(locale, path, alternates);
+const ui = t(locale);
 ---
 <!doctype html>
-<html lang="it" class="h-full">
+<html lang={localeMeta[locale].htmlLang} class:list={['h-full', Astro.locals.tinaEdit && 'tina-edit']}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,10 +48,14 @@ const ogImage = new URL(image ?? '/uploads/og.png', Astro.site ?? Astro.url.orig
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
+    {Object.entries(alternates).map(([l, href]) => (
+      <link rel="alternate" hreflang={localeMeta[l as Locale].htmlLang} href={new URL(href, origin)} />
+    ))}
+    {alternates[defaultLocale] && <link rel="alternate" hreflang="x-default" href={new URL(alternates[defaultLocale], origin)} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <meta name="theme-color" content="#0f172a" />
-    <meta property="og:locale" content="it_IT" />
+    <meta name="theme-color" content="#f8f7f4" />
+    <meta property="og:locale" content={localeMeta[locale].og} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={fullTitle} />
@@ -51,15 +65,15 @@ const ogImage = new URL(image ?? '/uploads/og.png', Astro.site ?? Astro.url.orig
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body class="flex min-h-full flex-col">
-    <a href="#contenuto" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-bg">Vai al contenuto</a>
-    <TinaIsland name="header" wrapper={islands.header.wrapper}>
-      <SiteHeader settings={settings} />
+    <a href="#content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-fg focus:px-4 focus:py-2 focus:text-bg">{ui.skipToContent}</a>
+    <TinaIsland name="header" wrapper={islands.header.wrapper} params={params}>
+      <SiteHeader settings={settings} locale={locale} path={path} alternates={alternates} />
     </TinaIsland>
-    <div id="contenuto" class="flex flex-1 flex-col">
+    <div id="content" class="flex flex-1 flex-col">
       <slot />
     </div>
-    <TinaIsland name="footer" wrapper={islands.footer.wrapper}>
-      <SiteFooter settings={settings} />
+    <TinaIsland name="footer" wrapper={islands.footer.wrapper} params={params}>
+      <SiteFooter settings={settings} locale={locale} path={path} alternates={alternates} />
     </TinaIsland>
   </body>
 </html>

@@ -1,50 +1,66 @@
 ---
 import { tinaField } from '@tinacms/astro/tina-field';
+import { type Alternates, type Locale, localizePath, t } from '../../lib/i18n';
 import type { SettingsData } from '../../lib/tina/data';
-import Icon from '../Icon.astro';
+import LanguageSwitcher from '../LanguageSwitcher.astro';
 import SocialLinks from '../SocialLinks.astro';
 
 interface Props {
   settings: SettingsData | undefined | null;
+  locale: Locale;
+  path: string;
+  alternates: Alternates;
 }
-const { settings } = Astro.props;
+const { settings, locale, alternates } = Astro.props;
+const ui = t(locale);
 const year = new Date().getFullYear();
-const wa = settings?.contacts?.whatsapp?.replace(/[^\d]/g, '');
+const contacts = settings?.contacts;
+const wa = contacts?.whatsapp?.replace(/[^\d]/g, '');
+const tel = contacts?.phone?.replace(/[^\d+]/g, '');
 ---
-<footer class="mt-auto border-t border-line/60 bg-surface/40">
-  <div class="container-x grid gap-10 py-12 md:grid-cols-3">
-    <div>
-      <a href="/" class="flex items-center gap-3">
-        {settings?.logo && <img src={settings.logo} alt="" width="48" height="48" class="size-12 rounded-full object-cover" />}
-        <span class="font-heading text-lg font-semibold uppercase tracking-wide">{settings?.siteName}</span>
+<footer class="mt-auto border-t border-line">
+  <div class="container-x grid gap-12 py-16 md:grid-cols-12 md:py-20">
+    <div class="md:col-span-5">
+      <a href={localizePath('/', locale)} class="inline-flex items-center gap-3">
+        {settings?.logo && <img src={settings.logo} alt="" width="28" height="28" class="size-7" />}
+        <span class="font-display text-[1.65rem] leading-none">{settings?.siteName}</span>
       </a>
-      {settings?.footerText && <p class="mt-4 max-w-sm text-sm leading-relaxed text-muted" data-tina-field={tinaField(settings, 'footerText')}>{settings.footerText}</p>}
+      {settings?.footerText && <p class="mt-5 max-w-sm leading-relaxed text-muted" data-tina-field={tinaField(settings, 'footerText')}>{settings.footerText}</p>}
+      <SocialLinks instagram={settings?.social?.instagram} facebook={settings?.social?.facebook} linkedin={settings?.social?.linkedin} class="mt-6 -ml-2" />
     </div>
-    <div>
-      <h2 class="font-heading text-sm font-semibold uppercase tracking-wider text-primary">Pagine</h2>
-      <ul class="mt-4 space-y-2">
+    <div class="md:col-span-3">
+      <h2 class="eyebrow font-sans">{ui.explore}</h2>
+      <ul class="mt-5 space-y-3">
         {settings?.nav?.map((item) => item && (
-          <li><a href={item.href} class="text-muted transition-colors hover:text-fg">{item.label}</a></li>
+          <li><a href={item.href} class="transition-colors hover:text-accent">{item.label}</a></li>
         ))}
       </ul>
     </div>
-    <div>
-      <h2 class="font-heading text-sm font-semibold uppercase tracking-wider text-primary">Contatti</h2>
-      <ul class="mt-4 space-y-2 text-muted">
-        {wa && (
-          <li><a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 transition-colors hover:text-fg"><Icon name="whatsapp" class="size-4" /><span data-tina-field={tinaField(settings!.contacts!, 'whatsapp')}>{settings?.contacts?.whatsapp}</span></a></li>
-        )}
-        {settings?.contacts?.email && (
-          <li><a href={`mailto:${settings.contacts.email}`} class="inline-flex items-center gap-2 transition-colors hover:text-fg"><Icon name="email" class="size-4" /><span data-tina-field={tinaField(settings.contacts, 'email')}>{settings.contacts.email}</span></a></li>
-        )}
+    <div class="md:col-span-4">
+      <h2 class="eyebrow font-sans">{ui.contact}</h2>
+      <ul class="mt-5 space-y-3">
+        {contacts?.email && <li><a href={`mailto:${contacts.email}`} class="transition-colors hover:text-accent" data-tina-field={tinaField(contacts, 'email')}>{contacts.email}</a></li>}
+        {contacts?.phone && <li><a href={`tel:${tel}`} class="transition-colors hover:text-accent" data-tina-field={tinaField(contacts, 'phone')}>{contacts.phone}</a></li>}
+        {wa && <li><a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer" class="transition-colors hover:text-accent" data-tina-field={tinaField(contacts!, 'whatsapp')}>WhatsApp</a></li>}
+        {contacts?.address && <li class="whitespace-pre-line text-muted" data-tina-field={tinaField(contacts, 'address')}>{contacts.address}</li>}
       </ul>
-      <SocialLinks instagram={settings?.social?.instagram} facebook={settings?.social?.facebook} class="mt-4 -ml-2" />
     </div>
   </div>
-  <div class="border-t border-line/60">
-    <div class="container-x flex flex-col gap-2 py-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-      <p>© {year} {settings?.siteName} – {settings?.tagline}</p>
-      <span class="flex items-center gap-4"><a href="/privacy/" class="transition-colors hover:text-fg">Privacy e cookie</a><a href="/admin/index.html" class="opacity-50 transition-opacity hover:opacity-100">Area riservata</a></span>
+
+  {settings?.siteName && (
+    <div class="container-x overflow-hidden" aria-hidden="true">
+      <p class="-mb-[0.14em] font-display text-[clamp(4rem,13.5vw,13rem)] leading-[0.85] tracking-[-0.03em] whitespace-nowrap text-surface-2 select-none">{settings.siteName}</p>
+    </div>
+  )}
+
+  <div class="border-t border-line">
+    <div class="container-x flex flex-col gap-4 py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+      <p>© {year} {settings?.siteName}{settings?.tagline && ` · ${settings.tagline}`}</p>
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <a href={localizePath('/privacy/', locale)} class="transition-colors hover:text-fg">{ui.privacy}</a>
+        <a href="/admin/index.html" class="transition-colors hover:text-fg">{ui.editorLogin}</a>
+        <LanguageSwitcher locale={locale} alternates={alternates} />
+      </div>
     </div>
   </div>
 </footer>

@@ -1,62 +1,87 @@
 ---
 import { tinaField } from '@tinacms/astro/tina-field';
+import { type Alternates, type Locale, localizePath, t } from '../../lib/i18n';
 import type { SettingsData } from '../../lib/tina/data';
+import Button from '../Button.astro';
 import Icon from '../Icon.astro';
-import SocialLinks from '../SocialLinks.astro';
+import LanguageSwitcher from '../LanguageSwitcher.astro';
 
 interface Props {
   settings: SettingsData | undefined | null;
+  locale: Locale;
+  /** Percorso della pagina (non `Astro.url`: nell'editor l'isola è renderizzata altrove). */
+  path: string;
+  alternates: Alternates;
 }
-const { settings } = Astro.props;
-const current = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const isActive = (href: string) => (href.replace(/\/+$/, '') || '/') === current;
+const { settings, locale, path, alternates } = Astro.props;
+const ui = t(locale);
+const home = localizePath('/', locale);
+const trim = (href: string) => href.replace(/\/+$/, '') || '/';
+const current = trim(path);
+// Attiva anche sulle sottopagine (un articolo tiene acceso "Journal"), tranne la home.
+const isActive = (href: string) =>
+  trim(href) === current || (trim(href) !== trim(home) && current.startsWith(`${trim(href)}/`));
+const cta = settings?.cta?.label && settings.cta.href ? settings.cta : null;
 ---
-<header class="sticky top-0 z-40 border-b border-line/60 bg-bg/85 backdrop-blur supports-[backdrop-filter]:bg-bg/70">
-  <div class="container-x flex h-16 items-center justify-between gap-4 md:h-20">
-    <a href="/" class="flex min-w-0 items-center gap-3" aria-label={settings?.siteName ?? 'Home'}>
+<header class="sticky top-0 z-40 border-b border-line/80 bg-bg/90 backdrop-blur-md supports-[backdrop-filter]:bg-bg/75">
+  <div class="container-x flex h-16 items-center justify-between gap-6 md:h-[4.5rem]">
+    <a href={home} class="flex min-w-0 items-center gap-3" aria-label={settings?.siteName ?? ui.home}>
       {settings?.logo && (
-        <img src={settings.logo} alt="" width="44" height="44" class="size-11 rounded-full object-cover" data-tina-field={tinaField(settings, 'logo')} />
+        <img src={settings.logo} alt="" width="28" height="28" class="size-7 shrink-0" data-tina-field={tinaField(settings, 'logo')} />
       )}
-      <span class="min-w-0 leading-tight">
-        <span class="block truncate font-heading text-base font-semibold uppercase tracking-wide" data-tina-field={settings ? tinaField(settings, 'siteName') : undefined}>{settings?.siteName ?? 'Futuro Nazionale'}</span>
-        {settings?.tagline && <span class="hidden truncate text-xs text-muted sm:block" data-tina-field={tinaField(settings, 'tagline')}>{settings.tagline}</span>}
-      </span>
+      <span class="truncate font-display text-[1.65rem] leading-none tracking-[-0.01em]" data-tina-field={settings ? tinaField(settings, 'siteName') : undefined}>{settings?.siteName}</span>
+      {settings?.tagline && (
+        <span class="hidden truncate border-l border-line pl-3 text-xs text-muted lg:block" data-tina-field={tinaField(settings, 'tagline')}>{settings.tagline}</span>
+      )}
     </a>
 
-    <nav id="site-nav" class="hidden items-center gap-1 md:flex" aria-label="Principale">
-      {settings?.nav?.map((item) => item && (
-        <a href={item.href}
-          class:list={['rounded-full px-4 py-2 font-heading text-sm font-semibold uppercase tracking-wide transition-colors', isActive(item.href) ? 'text-primary' : 'text-muted hover:text-fg']}
-          aria-current={isActive(item.href) ? 'page' : undefined}
-          data-tina-field={tinaField(item, 'label')}>{item.label}</a>
-      ))}
-      <SocialLinks instagram={settings?.social?.instagram} facebook={settings?.social?.facebook} class="ml-2" />
-    </nav>
+    <div class="hidden items-center gap-8 md:flex">
+      <nav aria-label={ui.navMain} class="flex items-center gap-7" data-tina-field={settings ? tinaField(settings, 'nav') : undefined}>
+        {settings?.nav?.map((item) => item && (
+          <a href={item.href}
+            class:list={[
+              'relative py-1 text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:bg-fg after:transition-transform after:duration-300',
+              isActive(item.href) ? 'text-fg after:scale-x-100' : 'text-muted after:scale-x-0 hover:text-fg hover:after:scale-x-100',
+            ]}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+            data-tina-field={tinaField(item, 'label')}>{item.label}</a>
+        ))}
+      </nav>
+      <LanguageSwitcher locale={locale} alternates={alternates} />
+      {cta && <Button href={cta.href!} size="sm" data-tina-field={tinaField(cta, 'label')}>{cta.label}</Button>}
+    </div>
 
-    <button type="button" class="grid size-11 place-items-center rounded-full text-fg hover:bg-surface md:hidden" aria-controls="mobile-nav" aria-expanded="false" aria-label="Apri il menu" data-menu-toggle>
+    <button type="button" class="-mr-2 grid size-11 place-items-center rounded-full text-fg hover:bg-surface md:hidden"
+      aria-controls="mobile-nav" aria-expanded="false" aria-label={ui.menuOpen}
+      data-menu-toggle data-label-open={ui.menuOpen} data-label-close={ui.menuClose}>
       <Icon name="menu" class="size-6 [[aria-expanded=true]_&]:hidden" />
       <Icon name="close" class="hidden size-6 [[aria-expanded=true]_&]:block" />
     </button>
   </div>
 
-  <div id="mobile-nav" class="hidden border-t border-line/60 md:hidden" hidden>
-    <nav class="container-x flex flex-col gap-1 py-4" aria-label="Principale (mobile)">
+  <div id="mobile-nav" class="border-t border-line/80 md:hidden" hidden>
+    <nav class="container-x flex flex-col py-4" aria-label={ui.navMain}>
       {settings?.nav?.map((item) => item && (
-        <a href={item.href} class:list={['rounded-xl px-4 py-3 font-heading text-base font-semibold uppercase tracking-wide', isActive(item.href) ? 'bg-surface text-primary' : 'text-fg hover:bg-surface']}>{item.label}</a>
+        <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}
+          class:list={['border-b border-line/70 py-4 font-display text-3xl', isActive(item.href) ? 'text-fg' : 'text-muted']}>{item.label}</a>
       ))}
-      <SocialLinks instagram={settings?.social?.instagram} facebook={settings?.social?.facebook} class="mt-2 px-2" />
+      <div class="flex items-center justify-between gap-4 pt-6 pb-2">
+        <LanguageSwitcher locale={locale} alternates={alternates} />
+        {cta && <Button href={cta.href!} size="sm">{cta.label}</Button>}
+      </div>
     </nav>
   </div>
 </header>
 
 <script>
-  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
-  const panel = document.getElementById('mobile-nav');
-  toggle?.addEventListener('click', () => {
+  // Delega sul documento: continua a funzionare quando l'editor sostituisce l'header.
+  document.addEventListener('click', (event) => {
+    const toggle = (event.target as Element | null)?.closest<HTMLButtonElement>('[data-menu-toggle]');
+    if (!toggle) return;
+    const panel = document.getElementById('mobile-nav');
     const open = toggle.getAttribute('aria-expanded') === 'true';
     toggle.setAttribute('aria-expanded', String(!open));
-    toggle.setAttribute('aria-label', open ? 'Apri il menu' : 'Chiudi il menu');
+    toggle.setAttribute('aria-label', (open ? toggle.dataset.labelOpen : toggle.dataset.labelClose) ?? '');
     panel?.toggleAttribute('hidden', open);
-    panel?.classList.toggle('hidden', open);
   });
 </script>

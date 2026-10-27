@@ -2,23 +2,38 @@
 import TinaIsland from '@tinacms/astro/TinaIsland.astro';
 import PageBody from '../components/islands/PageBody.astro';
 import Base from '../layouts/Base.astro';
-import { getPage, getSettings } from '../lib/tina/data';
+import { defaultLocale, isLocale, localizePath } from '../lib/i18n';
+import { getAlternates, getPage, getSettings } from '../lib/tina/data';
 import { islands } from '../lib/tina/islands';
 
-const raw = (Astro.params.slug ?? '').replace(/^\/+|\/+$/g, '');
-if (raw === 'home') return Astro.redirect('/', 301);
-if (raw && !/^[a-z0-9-]+$/.test(raw)) return new Response(null, { status: 404 });
-const slug = raw || 'home';
+// "/about/" → en/about, "/it/about/" → it/about, "/" → en/home, "/it/" → it/home.
+const segments = (Astro.params.slug ?? '').split('/').filter(Boolean);
+if (segments.some((s) => !/^[a-z0-9-]+$/.test(s))) return new Response(null, { status: 404 });
+// La lingua predefinita non ha prefisso: /en/about/ → /about/.
+if (segments[0] === defaultLocale)
+  return Astro.redirect(
+    localizePath(segments.length > 1 ? `/${segments.slice(1).join('/')}/` : '/', defaultLocale),
+    301,
+  );
+const locale = isLocale(segments[0]) ? segments[0] : defaultLocale;
+const rest = locale === defaultLocale ? segments : segments.slice(1);
+if (rest.length > 1) return Astro.rewrite('/404');
+if (rest[0] === 'home') return Astro.redirect(localizePath('/', locale), 301);
+const slug = rest[0] ?? 'home';
 
-const [page, settings] = await Promise.all([getPage(slug).catch(() => null), getSettings()]);
+const [page, settings, alternates] = await Promise.all([
+  getPage(locale, slug).catch(() => null),
+  getSettings(locale),
+  getAlternates('page', slug),
+]);
 const data = page?.data?.page;
 if (!data) return Astro.rewrite('/404');
 
 const hero = data.blocks?.find((b) => b?.__typename === 'PageBlocksHero');
 const ogImage = hero && 'image' in hero ? hero.image : undefined;
 ---
-<Base title={data.title} description={data.seoDescription} settings={settings.data.settings} image={ogImage}>
-  <TinaIsland name="page" wrapper={islands.page.wrapper} params={{ slug }} primary>
+<Base title={data.title} description={data.seoDescription} settings={settings.data.settings} locale={locale} alternates={alternates} image={ogImage}>
+  <TinaIsland name="page" wrapper={islands.page.wrapper} params={{ locale, slug }} primary>
     <PageBody page={data} />
   </TinaIsland>
 </Base>

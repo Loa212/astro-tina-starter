@@ -1,0 +1,22 @@
+{
+  "siteName": "Halden Studio",
+  "tagline": "Architettura e interni",
+  "logo": "/uploads/logo.svg",
+  "nav": [
+    { "label": "Studio", "href": "/it/about/" },
+    { "label": "Journal", "href": "/it/blog/" },
+    { "label": "Contatti", "href": "/it/contact/" }
+  ],
+  "cta": { "label": "Prenota una consulenza", "href": "/it/contact/" },
+  "social": {
+    "instagram": "https://www.instagram.com/",
+    "linkedin": "https://www.linkedin.com/"
+  },
+  "contacts": {
+    "email": "hello@example.com",
+    "phone": "+39 02 0000 0000",
+    "whatsapp": "+390000000000",
+    "address": "Via Esempio 12\n20121 Milano"
+  },
+  "footerText": "Uno studio indipendente che progetta case, ristrutturazioni e interni luminosi e sereni nel Nord Italia."
+}

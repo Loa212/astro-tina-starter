@@ -1,0 +1,43 @@
+---
+import { tinaField } from '@tinacms/astro/tina-field';
+import type { PageBlocksTestimonials } from '../../../tina/__generated__/types';
+import SectionHeader from '../SectionHeader.astro';
+
+interface Props {
+  block: PageBlocksTestimonials;
+}
+const { block } = Astro.props;
+const items = (block.items ?? []).filter((i) => i !== null);
+// "Giulia e Marco R." → "GM": solo le parole che iniziano con una maiuscola (salta "e", "&", "and").
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((part) => /^\p{Lu}/u.test(part))
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+---
+<section class="container-x py-20 md:py-28">
+  <SectionHeader block={block} />
+  <div class:list={['grid gap-x-8 gap-y-16 md:grid-cols-2', items.length >= 3 && 'lg:grid-cols-3', (block.heading || block.intro) && 'mt-14 md:mt-16']} data-tina-field={tinaField(block, 'items')}>
+    {items.map((item) => (
+      <figure class="reveal flex flex-col">
+        {item.image && (
+          <div class="aspect-[4/3] overflow-hidden bg-surface">
+            <img src={item.image} alt="" width="1200" height="900" loading="lazy" class="size-full object-cover" data-tina-field={tinaField(item, 'image')} />
+          </div>
+        )}
+        <blockquote class:list={['font-display text-[1.7rem] leading-[1.18] tracking-[-0.005em] text-balance', item.image && 'mt-7']} data-tina-field={tinaField(item, 'quote')}>
+          <span class="text-accent">“</span>{item.quote}<span class="text-accent">”</span>
+        </blockquote>
+        <figcaption class="mt-auto flex items-center gap-3 pt-7 text-sm">
+          <span class="grid size-10 shrink-0 place-items-center rounded-full border border-line text-xs font-medium tracking-wider text-muted" aria-hidden="true">{initials(item.author)}</span>
+          <span>
+            <span class="block font-medium" data-tina-field={tinaField(item, 'author')}>{item.author}</span>
+            {item.role && <span class="block text-muted" data-tina-field={tinaField(item, 'role')}>{item.role}</span>}
+          </span>
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+</section>

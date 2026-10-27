@@ -1,6 +1,5 @@
 ---
 import { tinaField } from '@tinacms/astro/tina-field';
-
 import type { PageBlocksImage } from '../../../tina/__generated__/types';
 
 interface Props {
@@ -8,6 +7,10 @@ interface Props {
 }
 const { block } = Astro.props;
 ---
-<section class="container-x pt-8 md:pt-12">
-  <img src={block.image} alt={block.alt ?? ''} width="2048" height="614" loading="eager" fetchpriority="high" class="w-full rounded-3xl object-cover" data-tina-field={tinaField(block, 'image')} />
-</section>
+{block.image && (
+  <section class="container-x py-6 md:py-10">
+    <figure class="aspect-[16/9] overflow-hidden bg-surface md:aspect-[21/9]">
+      <img src={block.image} alt={block.alt ?? ''} width="2000" height="900" loading="lazy" class="settle size-full object-cover" data-tina-field={tinaField(block, 'image')} />
+    </figure>
+  </section>
+)}

@@ -1,42 +1,40 @@
 ---
 import { tinaField } from '@tinacms/astro/tina-field';
 import type { PageBlocksContactList } from '../../../tina/__generated__/types';
+import { type Locale, t } from '../../lib/i18n';
 import Icon from '../Icon.astro';
 
 interface Props {
   block: PageBlocksContactList;
   first?: boolean;
+  locale: Locale;
 }
-const { block, first = false } = Astro.props;
+const { block, first = false, locale } = Astro.props;
 const Heading = first ? 'h1' : 'h2';
-type IconName = 'whatsapp' | 'email' | 'facebook' | 'instagram' | 'phone' | 'link';
-const KNOWN: readonly string[] = ['whatsapp', 'email', 'facebook', 'instagram', 'phone'];
-const iconFor = (kind: string): IconName => (KNOWN.includes(kind) ? (kind as IconName) : 'link');
+const kinds = t(locale).contactKinds;
+const external = (href: string) => /^https?:/.test(href);
 ---
-<section class="container-x py-14 md:py-20">
-  <div class="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+<section class="container-x pt-16 pb-12 md:pt-24 md:pb-20">
+  <div class="grid items-start gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
     <div class="min-w-0">
-      {block.heading && <Heading class="text-4xl sm:text-5xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>}
-      {block.intro && <p class="mt-4 text-lg text-muted" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
-      <ul class="mt-10 space-y-3" data-tina-field={tinaField(block, 'items')}>
+      {block.heading && <Heading class="rise text-5xl sm:text-6xl md:text-7xl" data-tina-field={tinaField(block, 'heading')}>{block.heading}</Heading>}
+      {block.intro && <p class="rise mt-6 max-w-lg text-lg leading-relaxed text-muted [--i:1]" data-tina-field={tinaField(block, 'intro')}>{block.intro}</p>}
+      <ul class="rise mt-12 border-t border-line [--i:2]" data-tina-field={tinaField(block, 'items')}>
         {block.items?.map((item) => item && (
-          <li>
-            <a href={item.href} target={/^https?:/.test(item.href) ? '_blank' : undefined} rel={/^https?:/.test(item.href) ? 'noopener noreferrer' : undefined}
-              class="group flex min-w-0 items-center gap-4 rounded-2xl border border-line/60 bg-surface/60 px-5 py-4 transition-colors hover:border-primary/60 hover:bg-surface">
-              <span class="grid size-11 shrink-0 place-items-center rounded-full bg-bg text-primary"><Icon name={iconFor(item.kind)} /></span>
-              <span class="min-w-0">
-                <span class="block text-xs font-semibold uppercase tracking-wider text-muted">{item.kind}</span>
-                <span class="block truncate font-semibold text-fg group-hover:text-primary" data-tina-field={tinaField(item, 'label')}>{item.label}</span>
-              </span>
-              <Icon name="arrow" class="ml-auto size-5 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+          <li class="border-b border-line">
+            <a href={item.href} target={external(item.href) ? '_blank' : undefined} rel={external(item.href) ? 'noopener noreferrer' : undefined}
+              class="group grid min-w-0 grid-cols-[6.5rem_1fr_auto] items-center gap-4 py-5 sm:grid-cols-[9rem_1fr_auto]">
+              <span class="text-xs font-medium uppercase tracking-[0.14em] text-muted">{kinds[item.kind] ?? item.kind}</span>
+              <span class="truncate text-lg transition-colors group-hover:text-accent" data-tina-field={tinaField(item, 'label')}>{item.label}</span>
+              <Icon name="arrowUpRight" class="size-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" />
             </a>
           </li>
         ))}
       </ul>
     </div>
     {block.image && (
-      <figure class="mx-auto w-full max-w-md lg:max-w-none">
-        <img src={block.image} alt={block.imageAlt ?? ''} width="900" height="1286" loading="lazy" class="w-full rounded-3xl shadow-2xl shadow-black/40" data-tina-field={tinaField(block, 'image')} />
+      <figure class="mx-auto aspect-[3/4] w-full max-w-md overflow-hidden bg-surface lg:max-w-none">
+        <img src={block.image} alt={block.imageAlt ?? ''} width="900" height="1200" loading="eager" class="settle size-full object-cover" data-tina-field={tinaField(block, 'image')} />
       </figure>
     )}
   </div>

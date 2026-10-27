@@ -1,0 +1,49 @@
+---
+import PostCard from '../../../components/PostCard.astro';
+import Base from '../../../layouts/Base.astro';
+import { formatDate, localeFromParam, locales, localizePath, t } from '../../../lib/i18n';
+import { getSettings, listPosts } from '../../../lib/tina/data';
+
+const locale = localeFromParam(Astro.params.lang);
+if (!locale) return Astro.rewrite('/404');
+const ui = t(locale);
+
+const [settings, posts] = await Promise.all([getSettings(locale), listPosts(locale)]);
+const alternates = Object.fromEntries(locales.map((l) => [l, localizePath('/blog/', l)]));
+const [lead, ...rest] = posts;
+---
+<Base title={ui.blogTitle} description={ui.blogIntro} settings={settings.data.settings} locale={locale} alternates={alternates}>
+  <main class="flex-1 pb-20 md:pb-28">
+    <header class="container-x pt-16 pb-12 md:pt-24 md:pb-16">
+      <p class="rise eyebrow">{settings.data.settings?.siteName}</p>
+      <h1 class="rise mt-6 text-6xl sm:text-7xl md:text-8xl [--i:1]">{ui.blogTitle}</h1>
+      <p class="rise mt-6 max-w-xl text-lg leading-relaxed text-muted [--i:2]">{ui.blogIntro}</p>
+    </header>
+    {posts.length === 0 ? (
+      <p class="container-x text-lg text-muted">{ui.blogEmpty}</p>
+    ) : (
+      <div class="container-x">
+        {lead && (
+          <a href={lead.href} class="group grid items-center gap-8 border-t border-line pt-10 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+            <div class="aspect-[16/10] overflow-hidden bg-surface">
+              {lead.image && <img src={lead.image} alt="" width="1600" height="1000" class="size-full object-cover transition-transform duration-700 ease-out-soft group-hover:scale-[1.03]" />}
+            </div>
+            <div>
+              <p class="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+                <time datetime={lead.date}>{formatDate(lead.date, locale)}</time>
+                {lead.tags[0] && <><span class="h-px w-4 bg-line" aria-hidden="true"></span><span>{lead.tags[0]}</span></>}
+              </p>
+              <h2 class="mt-4 text-4xl decoration-accent/60 underline-offset-4 group-hover:underline sm:text-5xl">{lead.title}</h2>
+              {lead.description && <p class="mt-5 text-lg leading-relaxed text-muted">{lead.description}</p>}
+            </div>
+          </a>
+        )}
+        {rest.length > 0 && (
+          <div class="mt-20 grid gap-x-8 gap-y-14 border-t border-line pt-10 md:grid-cols-2 lg:grid-cols-3">
+            {rest.map((post) => <PostCard post={post} locale={locale} />)}
+          </div>
+        )}
+      </div>
+    )}
+  </main>
+</Base>

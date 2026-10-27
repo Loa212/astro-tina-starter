@@ -1,0 +1,32 @@
+---
+import TinaMarkdown from '@tinacms/astro/TinaMarkdown.astro';
+import { tinaField } from '@tinacms/astro/tina-field';
+import type { PageBlocksFeature } from '../../../tina/__generated__/types';
+import Button from '../Button.astro';
+import SectionHeader from '../SectionHeader.astro';
+
+interface Props {
+  block: PageBlocksFeature;
+  first?: boolean;
+}
+const { block, first = false } = Astro.props;
+const imageRight = block.imagePosition === 'right';
+---
+<section class="container-x py-20 md:py-28">
+  <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+    {block.image && (
+      <figure class:list={['reveal aspect-[4/5] overflow-hidden bg-surface', imageRight && 'lg:order-2']}>
+        <img src={block.image} alt={block.imageAlt ?? ''} width="1200" height="1500" loading="lazy" class="size-full object-cover" data-tina-field={tinaField(block, 'image')} />
+      </figure>
+    )}
+    <div class:list={['max-w-xl', !block.image && 'lg:col-span-2']}>
+      <SectionHeader block={block} as={first ? 'h1' : 'h2'} />
+      {block.body && <div class="rich mt-8" data-tina-field={tinaField(block, 'body')}><TinaMarkdown content={block.body} /></div>}
+      {(block.buttons?.length ?? 0) > 0 && (
+        <div class="mt-10 flex flex-wrap gap-3" data-tina-field={tinaField(block, 'buttons')}>
+          {block.buttons!.map((b) => b && <Button href={b.href} variant={b.variant} data-tina-field={tinaField(b, 'label')}>{b.label}</Button>)}
+        </div>
+      )}
+    </div>
+  </div>
+</section>

@@ -1,16 +1,23 @@
 ---
 import Button from '../components/Button.astro';
 import Base from '../layouts/Base.astro';
+import { localeFromPathname, localizePath, t } from '../lib/i18n';
 import { getSettings } from '../lib/tina/data';
 
-const settings = await getSettings();
+// Dopo un Astro.rewrite('/404') il percorso originale dice la lingua.
+const locale = localeFromPathname(Astro.originPathname);
+const ui = t(locale);
+const settings = await getSettings(locale);
 Astro.response.status = 404;
 ---
-<Base title="Pagina non trovata" settings={settings.data.settings} noindex>
-  <main class="container-x flex flex-1 flex-col items-center justify-center py-24 text-center">
-    <p class="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-primary">Errore 404</p>
-    <h1 class="mt-3 text-4xl sm:text-5xl">Pagina non trovata</h1>
-    <p class="mt-4 max-w-md text-lg text-muted">La pagina che cerchi non esiste o è stata spostata.</p>
-    <div class="mt-8 flex gap-3"><Button href="/">Torna alla home</Button><Button href="/contatti/" variant="outline">Contattaci</Button></div>
+<Base title={ui.notFoundTitle} settings={settings.data.settings} locale={locale} noindex>
+  <main class="container-x flex flex-1 flex-col items-center justify-center py-28 text-center">
+    <p class="eyebrow justify-center">{ui.notFoundEyebrow}</p>
+    <h1 class="mt-6 text-6xl sm:text-7xl">{ui.notFoundTitle}</h1>
+    <p class="mt-5 max-w-md text-lg text-muted">{ui.notFoundText}</p>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <Button href={localizePath('/', locale)}>{ui.backHome}</Button>
+      <Button href={localizePath('/contact/', locale)} variant="outline">{ui.contactUs}</Button>
+    </div>
   </main>
 </Base>
