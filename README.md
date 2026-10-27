@@ -73,6 +73,17 @@ pnpm start:local    # http://localhost:3000 – login con TINA_ADMIN_USERNAME / 
 In produzione il server, all'avvio, indicizza `content/` nel database SQLite e **salta** l'indicizzazione se il commit
 (`SOURCE_COMMIT`, impostato da Coolify) è già quello indicizzato.
 
+### Makefile
+Scorciatoie per tutto quanto sopra: `make` mostra l'elenco dei comandi.
+```bash
+make env            # crea il .env da .env.example (poi compilalo)
+make dev            # = pnpm dev
+make start          # build + modalità produzione su http://localhost:3000
+make docker-up      # stessa immagine del deploy: build + container su http://localhost:3000, volume per /data
+make docker-logs    # log del container · make docker-down lo ferma · make docker-clean rimuove anche volume e immagine
+```
+Porta diversa: `make docker-up PORT=8080` (aggiorna anche `NEXTAUTH_URL` nel `.env`).
+
 ### Variabili d'ambiente
 Vedi [`.env.example`](.env.example).
 

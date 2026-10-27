@@ -19,7 +19,7 @@ Dettagli operativi, deploy e guida per chi modifica i contenuti: `README.md`.
 - Modulo contatti: `src/components/blocks/ContactForm.astro` + `src/lib/contact.ts` + `src/pages/api/contact.ts` (Resend);
   il campo nascosto `_lang` sceglie lingua di errori e redirect.
 - Comandi: `pnpm dev` (CMS locale senza login, serve un terminale interattivo), `pnpm build`, `pnpm start:local`,
-  `pnpm check`, `pnpm lint`.
+  `pnpm check`, `pnpm lint`; scorciatoie e Docker locale nel `Makefile` (`make` per l'elenco, `make docker-up`).
 - Nuovo tipo di sezione: template in `tina/collections/pages.ts` → componente in `src/components/blocks/` → `case` in
   `BlockRenderer.astro`. Campi con lo stesso nome in template diversi devono avere lo stesso tipo GraphQL
   (stesso `required`), altrimenti il codegen fallisce.
