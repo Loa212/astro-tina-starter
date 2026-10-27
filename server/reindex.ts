@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { createSchema, FilesystemBridge } from '@tinacms/graphql';
-import database from '../tina/database';
+import database, { FINGERPRINT_KEY } from '../tina/database';
 
 /**
  * Indicizza i file di `content/` (quelli dentro l'immagine) nel database SQLite.
@@ -10,9 +10,10 @@ import database from '../tina/database';
  * Il DB vive su un volume persistente, quindi:
  * - gli utenti (collection "detached") vengono seminati solo la prima volta e poi restano;
  * - i contenuti vengono re-indicizzati solo se i file dell'immagine sono cambiati rispetto all'ultima
- *   indicizzazione (impronta di content/ + schema). Così un container vecchio che si riavvia non
- *   sovrascrive una modifica appena salvata dal CMS, e un nuovo deploy viene sempre indicizzato
- *   anche se SOURCE_COMMIT manca o è impostato a mano.
+ *   indicizzazione (impronta di content/ + schema), così un nuovo deploy viene sempre indicizzato
+ *   anche se SOURCE_COMMIT manca o è impostato a mano;
+ * - ogni salvataggio dal CMS azzera l'impronta (tina/database.ts): al riavvio successivo il DB torna
+ *   allineato ai file, anche se questi sono stati riportati com'erano prima del salvataggio.
  */
 export async function ensureIndexed(rootPath = process.cwd()): Promise<void> {
   const db = await database;
@@ -20,7 +21,7 @@ export async function ensureIndexed(rootPath = process.cwd()): Promise<void> {
   const fingerprint = await contentFingerprint(resolve(rootPath, 'content'), generated);
   const commit = (process.env.SOURCE_COMMIT || '').slice(0, 7);
 
-  const last = await db.getMetadata('contentFingerprint');
+  const last = await db.getMetadata(FINGERPRINT_KEY);
   if (last === fingerprint) {
     console.log(
       `[tina] contenuti già indicizzati (${fingerprint.slice(0, 12)}${commit ? `, commit ${commit}` : ''}), salto`,
@@ -40,7 +41,7 @@ export async function ensureIndexed(rootPath = process.cwd()): Promise<void> {
   const started = Date.now();
   const { warnings } = await db.indexContent({ graphQLSchema: graphqlJson, tinaSchema });
   for (const w of warnings ?? []) console.warn('[tina] avviso indicizzazione:', w);
-  await db.setMetadata('contentFingerprint', fingerprint);
+  await db.setMetadata(FINGERPRINT_KEY, fingerprint);
   console.log(
     `[tina] contenuti indicizzati in ${Date.now() - started}ms (${fingerprint.slice(0, 12)}${commit ? `, commit ${commit}` : ''})`,
   );
