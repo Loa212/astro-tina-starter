@@ -13,7 +13,9 @@ import database, { FINGERPRINT_KEY } from '../tina/database';
  *   indicizzazione (impronta di content/ + schema), così un nuovo deploy viene sempre indicizzato
  *   anche se SOURCE_COMMIT manca o è impostato a mano;
  * - ogni salvataggio dal CMS azzera l'impronta (tina/database.ts): al riavvio successivo il DB torna
- *   allineato ai file, anche se questi sono stati riportati com'erano prima del salvataggio.
+ *   allineato ai file, anche se questi sono stati riportati com'erano prima del salvataggio;
+ * - l'impronta viene azzerata anche prima di indicizzare: se l'indicizzazione fallisce a metà (un file
+ *   che non rispetta lo schema), il DB resta incompleto e al riavvio successivo non va preso per buono.
  */
 export async function ensureIndexed(rootPath = process.cwd()): Promise<void> {
   const db = await database;
@@ -38,6 +40,7 @@ export async function ensureIndexed(rootPath = process.cwd()): Promise<void> {
   const tinaSchema = await createSchema({ schema: schemaJson });
   db.bridge = new FilesystemBridge(rootPath);
 
+  await db.setMetadata(FINGERPRINT_KEY, '');
   const started = Date.now();
   const { warnings } = await db.indexContent({ graphQLSchema: graphqlJson, tinaSchema });
   for (const w of warnings ?? []) console.warn('[tina] avviso indicizzazione:', w);
@@ -50,6 +53,8 @@ export async function ensureIndexed(rootPath = process.cwd()): Promise<void> {
 /** SHA-256 di percorsi e contenuti di content/ (esclusi gli utenti, gestiti a parte) + schema generato. */
 async function contentFingerprint(contentDir: string, generatedDir: string): Promise<string> {
   const hash = createHash('sha256');
+  // Versione dell'impronta: cambiarla forza una re-indicizzazione al prossimo avvio, su ogni installazione.
+  hash.update('v2\0');
   const files = (await walk(contentDir))
     .filter((f) => !relative(contentDir, f).startsWith('users/'))
     .sort();
