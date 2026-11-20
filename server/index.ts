@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import express, { type Request, type Response } from 'express';
 import { AuthJsBackendAuthProvider, TinaAuthJSOptions } from 'tinacms-authjs';
 import databaseClient from '../tina/__generated__/databaseClient';
+import { createMediaRouter } from './media';
 import { ensureIndexed } from './reindex';
 
 const isLocal = process.env.TINA_PUBLIC_IS_LOCAL === 'true';
@@ -19,24 +20,29 @@ function requireEnv(...names: string[]) {
   }
 }
 
+// TINA_GIT_PROVIDER=filesystem (solo prove in locale): i salvataggi vanno nei file di content/, niente GitHub.
+const savesToFiles = process.env.TINA_GIT_PROVIDER === 'filesystem';
+
 if (!isLocal) {
-  requireEnv('NEXTAUTH_SECRET', 'GITHUB_OWNER', 'GITHUB_REPO', 'GITHUB_PERSONAL_ACCESS_TOKEN');
+  requireEnv('NEXTAUTH_SECRET');
+  if (!savesToFiles) requireEnv('GITHUB_OWNER', 'GITHUB_REPO', 'GITHUB_PERSONAL_ACCESS_TOKEN');
 }
 
 const distDir = fileURLToPath(new URL('.', import.meta.url)); // dist/
 const rootDir = resolve(distDir, '..');
 
-const tinaHandler = TinaNodeBackend({
-  authProvider: isLocal
-    ? LocalBackendAuthProvider()
-    : AuthJsBackendAuthProvider({
-        authOptions: TinaAuthJSOptions({
-          databaseClient,
-          secret: process.env.NEXTAUTH_SECRET as string,
-        }),
+const authProvider = isLocal
+  ? LocalBackendAuthProvider()
+  : AuthJsBackendAuthProvider({
+      authOptions: TinaAuthJSOptions({
+        databaseClient,
+        secret: process.env.NEXTAUTH_SECRET as string,
       }),
-  databaseClient,
-});
+    });
+const tinaHandler = TinaNodeBackend({ authProvider, databaseClient });
+
+// Immagini caricate dal CMS: sul volume accanto al DB (in locale in .tina/), servite su /uploads.
+const uploadsDir = existsSync('/data') ? '/data/uploads' : resolve(rootDir, '.tina/uploads');
 
 const app = express();
 app.disable('x-powered-by');
@@ -56,6 +62,32 @@ app.use(
         res.setHeader('Cache-Control', 'public, max-age=3600');
       }
     },
+  }),
+);
+
+app.use(
+  '/uploads',
+  express.static(uploadsDir, {
+    index: false,
+    setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=3600'),
+  }),
+);
+
+// Media manager del CMS: elenco, caricamento ed eliminazione delle immagini.
+app.use(
+  '/api/media',
+  createMediaRouter({
+    authProvider,
+    uploadsDir,
+    buildUploadsDir: resolve(distDir, 'client/uploads'),
+    github: savesToFiles
+      ? undefined
+      : {
+          owner: process.env.GITHUB_OWNER as string,
+          repo: process.env.GITHUB_REPO as string,
+          branch: process.env.GITHUB_BRANCH || 'main',
+          token: process.env.GITHUB_PERSONAL_ACCESS_TOKEN as string,
+        },
   }),
 );
 
@@ -119,4 +151,9 @@ try {
 
 app.listen(port, host, () => {
   console.log(`Server in ascolto su http://${host}:${port} (${isLocal ? 'locale' : 'produzione'})`);
+  if (!isLocal && savesToFiles) {
+    console.warn(
+      '[tina] TINA_GIT_PROVIDER=filesystem: i salvataggi vanno in content/, nessun commit su GitHub',
+    );
+  }
 });

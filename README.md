@@ -48,7 +48,9 @@ lingua**, come consigliato dalla [guida Tina](https://tina.io/docs/guides/intern
    dentro l'editor). Una traduzione si collega all'originale se ha lo stesso nome file.
 5. **Salva**: la modifica è visibile subito ricaricando la pagina. In sottofondo viene fatto un commit su GitHub
    e il sito si ridistribuisce da solo in 1–3 minuti.
-6. **Immagini**: scegli tra quelle in *Media*. Per aggiungerne di nuove chiedi a chi gestisce il codice (vanno in `public/uploads/`).
+6. **Immagini**: in qualsiasi campo immagine (o in *Media*) premi **Upload**. Le foto vengono ridotte e convertite
+   in WebP, ripulite dai dati EXIF (compresa la posizione GPS) e sono subito online. Formati: JPG, PNG, WebP, GIF;
+   massimo 25 MB. Le cartelle non sono supportate: tutto finisce in `/uploads`.
 7. **Utenti**: solo l'amministratore può aggiungerli o modificarli dal menu *Users*.
 
 ## Per chi gestisce il codice
@@ -160,6 +162,14 @@ compila i segnaposto **[…]** e falla rivedere a chi ne risponde. Il sito non u
 quindi non serve un banner; se aggiungi analytics o embed esterni, serve un banner con consenso.
 
 ### Limiti noti
-- **Upload immagini dal CMS**: in self-hosted Tina non ha il CDN media di TinaCloud; il media manager è in sola lettura
-  (`static: true`). Le nuove immagini si aggiungono in `public/uploads/` con un commit.
+- **Upload immagini dal CMS**: in self-hosted il media "repo" di Tina non funziona (passa da TinaCloud), quindi il
+  media manager di produzione è nostro (`tina/media-store.ts` → `server/media.ts`, solo utenti loggati). Ogni immagine
+  va sul volume (`/data/uploads`, servita su `/uploads`) e viene committata in `public/uploads/` sul branch
+  `GITHUB_BRANCH`. Niente SVG (possono contenere script) e niente sottocartelle. In `pnpm dev` resta il media locale di Tina.
+- **Contenuti fuori schema**: `pnpm build` (quindi anche la build Docker su Coolify) esegue `pnpm validate:content`, che
+  indicizza `content/` in un DB usa e getta: se un file non rispetta lo schema (template rimosso, campo rinominato,
+  frontmatter rotto) la build fallisce e il sito resta sulla versione precedente, invece di partire con il DB vuoto.
+  All'avvio l'impronta viene azzerata prima di indicizzare, così un'indicizzazione fallita non viene presa per buona.
+- Prova in locale senza GitHub: `TINA_GIT_PROVIDER=filesystem` fa scrivere i salvataggi del CMS in `content/`
+  (vedi `git diff`) invece di committare. Solo per prove: mai su Coolify.
 - L'immagine è di 1,6 GB (dipendenze React/Next richieste dai pacchetti Tina).

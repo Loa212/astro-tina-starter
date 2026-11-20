@@ -7,8 +7,9 @@
   },
   "scripts": {
     "dev": "TINA_PUBLIC_IS_LOCAL=true tinacms dev -c \"astro dev\"",
-    "build": "tinacms build --skip-cloud-checks --skip-indexing --noTelemetry && astro build && pnpm run build:server",
+    "build": "tinacms build --skip-cloud-checks --skip-indexing --noTelemetry && pnpm run validate:content && astro build && pnpm run build:server",
     "build:server": "esbuild server/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=dist/server.mjs",
+    "validate:content": "esbuild server/validate-content.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=.tina/validate-content.mjs && node .tina/validate-content.mjs",
     "start": "node dist/server.mjs",
     "start:local": "TINA_PUBLIC_IS_LOCAL=false TINA_DB_PATH=.tina/local.db node --env-file-if-exists=.env dist/server.mjs",
     "check": "astro check && tsc --noEmit -p tsconfig.server.json",
@@ -36,6 +37,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "resend": "^6.34.1",
+    "sharp": "^0.35.5",
     "sqlite-level": "^2.1.1",
     "tailwindcss": "^4.3.3",
     "tinacms": "^3.15.0",

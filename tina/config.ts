@@ -3,6 +3,7 @@ import { TinaUserCollection, UsernamePasswordAuthJSProvider } from 'tinacms-auth
 import { pages } from './collections/pages';
 import { posts } from './collections/posts';
 import { settings } from './collections/settings';
+import { UploadsMediaStore } from './media-store';
 
 const isLocal = process.env.TINA_PUBLIC_IS_LOCAL === 'true';
 
@@ -14,13 +15,10 @@ export default defineConfig({
     outputFolder: 'admin',
     publicFolder: 'public',
   },
-  media: {
-    tina: {
-      mediaRoot: 'uploads',
-      publicFolder: 'public',
-      static: true,
-    },
-  },
+  // In locale le immagini le scrive in public/uploads il CLI di Tina; in produzione il nostro /api/media.
+  media: isLocal
+    ? { tina: { mediaRoot: 'uploads', publicFolder: 'public' } }
+    : { loadCustomStore: async () => UploadsMediaStore },
   schema: {
     collections: [TinaUserCollection, settings, pages, posts],
   },
